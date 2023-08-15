@@ -1,0 +1,35 @@
+{
+	"name": "octarine-scripts",
+	"version": "1.0.0",
+	"description": "Octarine: Scripts",
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^6.4.0",
+		"@typescript-eslint/parser": "^6.4.0",
+		"eslint": "^8.47.0",
+		"eslint-config-prettier": "^9.0.0",
+		"eslint-plugin-import": "^2.28.0",
+		"eslint-plugin-jsdoc": "^46.4.6",
+		"eslint-plugin-prettier": "^5.0.0",
+		"eslint-plugin-simple-import-sort": "^10.0.0",
+		"eslint-plugin-unicorn": "^48.0.1",
+		"eslint-plugin-unused-imports": "^3.0.0",
+		"prettier": "^3.0.2",
+		"typescript": "^5.1.6"
+	},
+	"scripts": {
+		"check-types": "npx tsc",
+		"check-types-watch": "npx tsc --watch",
+		"upgrade-pack": "yarn upgrade-interactive --latest",
+		"check-circular": "npx madge --circular index.ts",
+		"lint": "eslint -c .eslintrc.json --ext .ts --fix ."
+	},
+	"contributors": [
+		"Qzore"
+	],
+	"license": "GPL-3.0-or-later",
+	"repository": {
+		"type": "git",
+		"directory": "/",
+		"url": "https://github.com/qzore-test/who-got-the-creep"
+	}
+}
