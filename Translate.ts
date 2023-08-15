@@ -1,7 +1,7 @@
 import { Menu, Utils } from "github.com/octarine-public/wrapper/index"
 
 const path = "scripts_files/translate"
-const base = "github.com/qzore-test/who-got-the-creep"
+const base = "github.com/octarine-public/who-got-the-creep"
 const Load = (name: string) => {
 	return new Map<string, string>(Object.entries(Utils.readJSON(`${base}/${path}/${name}.json`)))
 }
