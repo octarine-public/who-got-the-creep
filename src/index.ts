@@ -36,7 +36,8 @@ const bootstrap = new (class CWhoGotCreep {
 		return GameRules === undefined || GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
 	}
 	public GameEvent(eventName: string, obj: any) {
-		if (!this.State) {
+		const gameTime = GameRules?.RawGameTime ?? 0
+		if (!this.State || gameTime > this.menu.disibleMin.value * 60) {
 			return
 		}
 
@@ -61,7 +62,6 @@ const bootstrap = new (class CWhoGotCreep {
 				return
 			}
 
-			const gameTime = GameRules?.RawGameTime ?? 0
 			this.units.push({
 				lastCreepPos: killedEntity.Position.Clone(),
 				attackerEntity,
