@@ -108,6 +108,13 @@ const bootstrap = new (class CWhoGotCreep {
 				this.units.shift()
 			}			
 		}
+
+		if (this.XpESPState) {
+			this.units.forEach((unit) => {
+				console.log("creep bounty xp:", unit.bounty)
+				console.log("new xp:", LocalPlayer?.Hero?.CurrentXP)
+			})
+		}
 	}
 
 	public Draw() {
