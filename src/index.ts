@@ -22,7 +22,7 @@ interface AttackOutcome {
 }
 
 const bootstrap = new (class CWhoGotCreep {
-	public currentXP: number = 0
+	public currentXP: number = LocalPlayer?.Hero ? LocalPlayer.Hero.CurrentXP : 0
 	public units: {
 		lastCreepPos: Vector3
 		attackerEntity: Unit
@@ -70,6 +70,9 @@ const bootstrap = new (class CWhoGotCreep {
 			gameTime,
 			bounty: killedEntity.XPBounty,
 		})
+
+		console.log("creep bounty xp:", killedEntity.XPBounty)
+		console.log("new xp:", this.currentXP)
 	}
 
 	public Tick() {
@@ -91,13 +94,6 @@ const bootstrap = new (class CWhoGotCreep {
 			if (gameTime + this.menu.timeToShow.value < GameRules?.RawGameTime) {
 				this.units.shift()
 			}			
-		}
-
-		if (this.XpESPState) {
-			this.units.forEach((unit) => {
-				console.log("creep bounty xp:", unit.bounty)
-				console.log("new xp:", this.currentXP)
-			})
 		}
 	}
 
