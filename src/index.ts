@@ -80,7 +80,8 @@ const bootstrap = new (class CWhoGotCreep {
 
 			const xpPerHero: number = LocalPlayer?.Hero?.CurrentXP! - 
 				this.teammatesXP.get(LocalPlayer?.Hero?.PlayerID!)!
-			const heroesAround: number = killedEntity.XPBounty / xpPerHero
+			console.log(killedEntity.XPBounty, xpPerHero)
+			const heroesAround: number = (killedEntity.XPBounty / xpPerHero) + 1
 				
 			console.log("Around is", heroesAround % 2 === 0 ? heroesAround : Math.floor(heroesAround), "heroes (expect you)")
 
