@@ -34,9 +34,7 @@ const bootstrap = new (class CWhoGotCreep {
 
 	public GameEvent(eventName: string, obj: any) {
 		const gameTime = GameRules?.RawGameTime ?? 0
-		if (
-			(!this.WhoGotTheCreepState && !this.XpESPState) ||
-			gameTime > this.menu.disibleMin.value * 60) {
+		if (!this.WhoGotTheCreepState || gameTime > this.menu.disibleMin.value * 60) {
 			return
 		}
 
@@ -70,18 +68,10 @@ const bootstrap = new (class CWhoGotCreep {
 			gameTime,
 			bounty: killedEntity.XPBounty,
 		})
-
-		console.log("creep bounty xp:", killedEntity.XPBounty)
-		console.log("new xp:", this.currentXP)
 	}
 
 	public Tick() {
-		if (LocalPlayer?.Hero?.CurrentXP !== this.currentXP) {
-			console.log("old xp:", this.currentXP)
-			this.currentXP = LocalPlayer?.Hero?.CurrentXP!
-		}
-
-		if ((!this.WhoGotTheCreepState && this.XpESPState) || this.IsPostGame || !GameRules?.RawGameTime) {
+		if (!this.WhoGotTheCreepState || this.IsPostGame || !GameRules?.RawGameTime) {
 			return
 		}
 		if (!this.units.length) {
