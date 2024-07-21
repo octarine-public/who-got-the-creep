@@ -67,6 +67,11 @@ const bootstrap = new (class CWhoGotCreep {
 				return
 			}
 
+			const xpPerHero: number = LocalPlayer?.Hero?.CurrentXP! - this.teammatesXP.get(LocalPlayer?.Hero?.Name!)!
+			const heroesGainesXp: number = Math.floor(killedEntity.XPBounty / xpPerHero)
+
+			console.log(heroesGainesXp, "heroes gains xp")
+
 			const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
 
 			console.log("creep:", killedEntity.Name, "bounty", killedEntity.XPBounty, "extra bounty", killedEntity.XPBountyExtra)
