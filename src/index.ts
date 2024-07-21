@@ -70,8 +70,6 @@ const bootstrap = new (class CWhoGotCreep {
 			gameTime,
 			bounty: killedEntity.XPBounty,
 		})
-
-		console.log("old xp:", LocalPlayer?.Hero?.CurrentXP)
 	}
 
 	public Tick() {
