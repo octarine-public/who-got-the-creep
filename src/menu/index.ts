@@ -32,14 +32,14 @@ export class MenuManager {
 		this.whoGotTheCreepNode = this.baseNode.AddNode("Who got the creep")
 		this.xpESP = this.baseNode.AddNode("XP ESP")
 
-		this.State = this.baseNode.AddToggle("State", true)
-		this.showAllyCreeps = this.baseNode.AddToggle("Show ally creeps", false)
-		this.showAllyHeroes = this.baseNode.AddToggle("Show ally heroes", false)
-		this.size = this.baseNode.AddSlider("Size", 30, 25, 50)
-		this.timeToShow = this.baseNode.AddSlider("Time to show seconds", 2, 1, 5)
-		this.opactity = this.baseNode.AddSlider("Opacity", 85, 40, 100)
-		this.disibleMin = this.baseNode.AddSlider("Disable after N minutes", 15, 5, 60)
-		this.reset = this.baseNode.AddButton("Reset", "Reset settings to default values")
+		this.State = this.whoGotTheCreepNode.AddToggle("State", true)
+		this.showAllyCreeps = this.whoGotTheCreepNode.AddToggle("Show ally creeps", false)
+		this.showAllyHeroes = this.whoGotTheCreepNode.AddToggle("Show ally heroes", false)
+		this.size = this.whoGotTheCreepNode.AddSlider("Size", 30, 25, 50)
+		this.timeToShow = this.whoGotTheCreepNode.AddSlider("Time to show seconds", 2, 1, 5)
+		this.opactity = this.whoGotTheCreepNode.AddSlider("Opacity", 85, 40, 100)
+		this.disibleMin = this.whoGotTheCreepNode.AddSlider("Disable after N minutes", 15, 5, 60)
+		this.reset = this.whoGotTheCreepNode.AddButton("Reset", "Reset settings to default values")
 		this.reset.OnValue(() => this.ResetSettings())
 	}
 
