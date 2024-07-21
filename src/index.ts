@@ -47,27 +47,25 @@ const bootstrap = new (class CWhoGotCreep {
 		]
 
 		if (
-			!(killedEntity instanceof Unit) ||
-			!killedEntity.IsCreep ||
-			!(attackerEntity instanceof Unit) ||
-			!attackerEntity.IsHero
+			killedEntity instanceof Unit &&
+			killedEntity.IsCreep &&
+			attackerEntity instanceof Unit &&
+			attackerEntity.IsHero
 		) {
-			return
-		}
+			if (
+				(!killedEntity.IsEnemy(attackerEntity) && !this.menu.showAllyCreeps.value) ||
+				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.showAllyHeroes.value)
+			) {
+				return
+			}
 
-		if (
-			(!killedEntity.IsEnemy(attackerEntity) && !this.menu.showAllyCreeps.value) ||
-			(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.showAllyHeroes.value)
-		) {
-			return
+			this.units.push({
+				lastCreepPos: killedEntity.Position.Clone(),
+				attackerEntity,
+				gameTime,
+				bounty: killedEntity.XPBounty,
+			})
 		}
-
-		this.units.push({
-			lastCreepPos: killedEntity.Position.Clone(),
-			attackerEntity,
-			gameTime,
-			bounty: killedEntity.XPBounty,
-		})
 	}
 
 	public Tick() {
