@@ -2,7 +2,6 @@ import "../translations"
 
 import {
 	Color,
-	Creep,
 	DOTAGameState,
 	EntityManager,
 	EventsSDK,
@@ -23,25 +22,15 @@ interface AttackOutcome {
 }
 
 const bootstrap = new (class CWhoGotCreep {
-	private readonly menu = new MenuManager()
+	public currentXP: number = 0
 	public units: {
 		lastCreepPos: Vector3
 		attackerEntity: Unit
 		gameTime: number
 		bounty: number
 	}[] = []
-
-	protected get WhoGotTheCreepState() {
-		return this.menu.WhoGotTheCreepState.value
-	}
-
-	protected get XpESPState() {
-		return this.menu.XpESPState.value
-	}
-
-	protected get IsPostGame() {
-		return GameRules === undefined || GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
-	}
+	
+	private readonly menu = new MenuManager()
 
 	public GameEvent(eventName: string, obj: any) {
 		const gameTime = GameRules?.RawGameTime ?? 0
@@ -85,15 +74,11 @@ const bootstrap = new (class CWhoGotCreep {
 		console.log("old xp:", LocalPlayer?.Hero?.CurrentXP)
 	}
 
-	protected ShouldAttackOutcome(eventName: string, obj: any): obj is AttackOutcome {
-		return (
-			eventName === "entity_killed" &&
-			typeof obj.entindex_killed === "number" &&
-			typeof obj.entindex_attacker === "number"
-		)
-	}
-
 	public Tick() {
+		if (LocalPlayer?.Hero?.CurrentXP !== this.currentXP) {
+			this.currentXP = LocalPlayer?.Hero?.CurrentXP!
+		}
+
 		if ((!this.WhoGotTheCreepState && this.XpESPState) || this.IsPostGame || !GameRules?.RawGameTime) {
 			return
 		}
@@ -107,6 +92,13 @@ const bootstrap = new (class CWhoGotCreep {
 			if (gameTime + this.menu.timeToShow.value < GameRules?.RawGameTime) {
 				this.units.shift()
 			}			
+		}
+
+		if (this.XpESPState) {
+			this.units.forEach((unit) => {
+				console.log("creep bounty xp:", unit.bounty)
+				console.log("new xp:", LocalPlayer?.Hero?.CurrentXP)
+			})
 		}
 	}
 
@@ -132,6 +124,26 @@ const bootstrap = new (class CWhoGotCreep {
 			}
 		})
 	}
+
+	protected ShouldAttackOutcome(eventName: string, obj: any): obj is AttackOutcome {
+		return (
+			eventName === "entity_killed" &&
+			typeof obj.entindex_killed === "number" &&
+			typeof obj.entindex_attacker === "number"
+		)
+	}
+
+	protected get WhoGotTheCreepState() {
+		return this.menu.WhoGotTheCreepState.value
+	}
+
+	protected get XpESPState() {
+		return this.menu.XpESPState.value
+	}
+
+	protected get IsPostGame() {
+		return GameRules === undefined || GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
+	}
 })()
 
 EventsSDK.on("Draw", () => bootstrap.Draw())
@@ -139,4 +151,5 @@ EventsSDK.on("Tick", () => bootstrap.Tick())
 EventsSDK.on("GameEvent", (eventName: string, obj: any) => bootstrap.GameEvent(eventName, obj))
 EventsSDK.on("GameEnded", () => {
 	bootstrap.units = []
+	bootstrap.currentXP = 0
 })
