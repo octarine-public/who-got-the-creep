@@ -80,10 +80,10 @@ const bootstrap = new (class CWhoGotCreep {
 
 			const currentXp: number = LocalPlayer?.Hero?.CurrentXP!
 			const heroesAround: number = currentXp % 2 === 0 ?
-				currentXp :
-				currentXp! + 1  
+				currentXp - 1 :
+				currentXp
 			
-			console.log("Around is", heroesAround, "heroes")
+			console.log("Around is", heroesAround, "heroes (expect you)")
 
 			const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
 
