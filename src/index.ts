@@ -32,7 +32,7 @@ const bootstrap = new (class CWhoGotCreep {
 		attackerEntity: Unit
 		gameTime: number
 	}[] = []
-	public teammatesXP = new Map<number, number>()
+	public teammatesXP = new Map<string, number>()
 
 	private readonly menu = new MenuManager()
 
@@ -41,17 +41,6 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public GameEvent(eventName: string, obj: any): void {
-		const oldTeammatesXp = new Map<number, number>()
-
-		if (this.XpESPState) {
-			this.teammatesXP.forEach((
-				value: number,
-				key: number
-			): void => {
-				oldTeammatesXp.set(key, value)
-			})
-		}
-
 		const gameTime = GameRules?.RawGameTime ?? 0
 		if (!this.WhoGotTheCreepState || gameTime > this.menu.disibleMin.value * 60) {
 			return
@@ -89,9 +78,9 @@ const bootstrap = new (class CWhoGotCreep {
 					"xp:",
 					hero.CurrentXP,
 					"old xp:",
-					this.teammatesXP.get(hero.PlayerID),
+					this.teammatesXP.get(hero.Name),
 					"gain:",
-					hero.CurrentXP - this.teammatesXP.get(hero.PlayerID)!
+					hero.CurrentXP - this.teammatesXP.get(hero.Name)!
 				)
 			})
 
@@ -106,10 +95,10 @@ const bootstrap = new (class CWhoGotCreep {
 	public Tick() {
 		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 			if (hero.Team === LocalPlayer?.Hero?.Team) {
-				const currXp: Nullable<number> = this.teammatesXP.get(hero.PlayerID)
+				const currXp: Nullable<number> = this.teammatesXP.get(hero.Name)
 				
 				if (currXp !== hero.CurrentXP) {
-					this.teammatesXP.set(hero.PlayerID, hero.CurrentXP)
+					this.teammatesXP.set(hero.Name, hero.CurrentXP)
 				}
 			}
 		})
