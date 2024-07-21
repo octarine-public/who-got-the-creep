@@ -24,7 +24,7 @@ interface AttackOutcome {
 
 const bootstrap = new (class CWhoGotCreep {
 	constructor() {
-		this.menu.getTeammatesXp.OnPressed(this.GetTeammatesXp) 
+		this.menu.getTeammatesXp.OnPressed(() => this.GetTeammatesXp()) 
 	}
 
 	public currentXP: number = LocalPlayer?.Hero ? LocalPlayer.Hero.CurrentXP : 0
