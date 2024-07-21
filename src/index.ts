@@ -2,11 +2,13 @@ import "../translations"
 
 import {
 	Color,
+	Creep,
 	DOTAGameState,
 	EntityManager,
 	EventsSDK,
 	GameRules,
 	GUIInfo,
+	LocalPlayer,
 	RendererSDK,
 	Unit,
 	Vector2,
@@ -26,18 +28,26 @@ const bootstrap = new (class CWhoGotCreep {
 		lastCreepPos: Vector3
 		attackerEntity: Unit
 		gameTime: number
+		bounty: number
 	}[] = []
 
 	protected get WhoGotTheCreepState() {
 		return this.menu.WhoGotTheCreepState.value
 	}
 
+	protected get XpESPState() {
+		return this.menu.XpESPState.value
+	}
+
 	protected get IsPostGame() {
 		return GameRules === undefined || GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
 	}
+
 	public GameEvent(eventName: string, obj: any) {
 		const gameTime = GameRules?.RawGameTime ?? 0
-		if (!this.WhoGotTheCreepState || gameTime > this.menu.disibleMin.value * 60) {
+		if (
+			(!this.WhoGotTheCreepState && !this.XpESPState) ||
+			gameTime > this.menu.disibleMin.value * 60) {
 			return
 		}
 
@@ -50,25 +60,31 @@ const bootstrap = new (class CWhoGotCreep {
 		]
 
 		if (
-			killedEntity instanceof Unit &&
-			killedEntity.IsCreep &&
-			attackerEntity instanceof Unit &&
-			attackerEntity.IsHero
+			!(killedEntity instanceof Unit) ||
+			!killedEntity.IsCreep ||
+			!(attackerEntity instanceof Unit) ||
+			!attackerEntity.IsHero
 		) {
-			if (
-				(!killedEntity.IsEnemy(attackerEntity) && !this.menu.showAllyCreeps.value) ||
-				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.showAllyHeroes.value)
-			) {
-				return
-			}
-
-			this.units.push({
-				lastCreepPos: killedEntity.Position.Clone(),
-				attackerEntity,
-				gameTime
-			})
+			return
 		}
+
+		if (
+			(!killedEntity.IsEnemy(attackerEntity) && !this.menu.showAllyCreeps.value) ||
+			(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.showAllyHeroes.value)
+		) {
+			return
+		}
+
+		this.units.push({
+			lastCreepPos: killedEntity.Position.Clone(),
+			attackerEntity,
+			gameTime,
+			bounty: killedEntity.XPBounty,
+		})
+
+		console.log("old xp:", LocalPlayer?.Hero?.CurrentXP)
 	}
+
 	protected ShouldAttackOutcome(eventName: string, obj: any): obj is AttackOutcome {
 		return (
 			eventName === "entity_killed" &&
@@ -76,18 +92,28 @@ const bootstrap = new (class CWhoGotCreep {
 			typeof obj.entindex_attacker === "number"
 		)
 	}
+
 	public Tick() {
-		if (!this.WhoGotTheCreepState || this.IsPostGame || !GameRules?.RawGameTime) {
+		if ((!this.WhoGotTheCreepState && this.XpESPState) || this.IsPostGame || !GameRules?.RawGameTime) {
 			return
 		}
 		if (!this.units.length) {
 			return
 		}
 
-		const gameTime = this.units[0].gameTime
+		if (this.WhoGotTheCreepState) {
+			const gameTime = this.units[0].gameTime
 
-		if (gameTime + this.menu.timeToShow.value < GameRules?.RawGameTime) {
-			this.units.shift()
+			if (gameTime + this.menu.timeToShow.value < GameRules?.RawGameTime) {
+				this.units.shift()
+			}			
+		}
+
+		if (this.XpESPState) {
+			this.units.forEach((unit) => {
+				console.log("creep bounty xp:", unit.bounty)
+				console.log("new xp:", LocalPlayer?.Hero?.CurrentXP)
+			})
 		}
 	}
 
@@ -95,6 +121,7 @@ const bootstrap = new (class CWhoGotCreep {
 		if (!this.WhoGotTheCreepState || this.IsPostGame) {
 			return
 		}
+
 		this.units.forEach(unit => {
 			const creepPos = unit.lastCreepPos
 			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
