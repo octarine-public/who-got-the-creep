@@ -70,6 +70,7 @@ const bootstrap = new (class CWhoGotCreep {
 			const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
 
 			console.log("creep:", killedEntity.Name, "bounty", killedEntity.XPBounty)
+			
 			heroes.forEach((hero: Hero): void => {
 				console.log(
 					"name:",
