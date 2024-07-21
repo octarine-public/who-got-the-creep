@@ -7,6 +7,7 @@ import {
 	EventsSDK,
 	GameRules,
 	GUIInfo,
+	Hero,
 	LocalPlayer,
 	RendererSDK,
 	Unit,
@@ -27,7 +28,6 @@ const bootstrap = new (class CWhoGotCreep {
 		lastCreepPos: Vector3
 		attackerEntity: Unit
 		gameTime: number
-		bounty: number
 	}[] = []
 	
 	private readonly menu = new MenuManager()
@@ -59,11 +59,12 @@ const bootstrap = new (class CWhoGotCreep {
 				return
 			}
 
+			console.log(EntityManager.GetEntitiesByClass(Hero).length)
+
 			this.units.push({
 				lastCreepPos: killedEntity.Position.Clone(),
 				attackerEntity,
-				gameTime,
-				bounty: killedEntity.XPBounty,
+				gameTime
 			})
 		}
 	}
@@ -76,16 +77,14 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		if (this.WhoGotTheCreepState) {
-			const gameTime = this.units[0].gameTime
+		const gameTime = this.units[0].gameTime
 
-			if (gameTime + this.menu.timeToShow.value < GameRules?.RawGameTime) {
-				this.units.shift()
-			}			
+		if (gameTime + this.menu.timeToShow.value < GameRules?.RawGameTime) {
+			this.units.shift()
 		}
 	}
 
-	public Draw() {
+	public Draw(): void {
 		if (!this.WhoGotTheCreepState || this.IsPostGame) {
 			return
 		}
@@ -116,15 +115,15 @@ const bootstrap = new (class CWhoGotCreep {
 		)
 	}
 
-	protected get WhoGotTheCreepState() {
+	protected get WhoGotTheCreepState(): boolean {
 		return this.menu.WhoGotTheCreepState.value
 	}
 
-	protected get XpESPState() {
+	protected get XpESPState(): boolean {
 		return this.menu.XpESPState.value
 	}
 
-	protected get IsPostGame() {
+	protected get IsPostGame(): boolean {
 		return GameRules === undefined || GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
 	}
 })()
