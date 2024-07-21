@@ -29,10 +29,24 @@ const bootstrap = new (class CWhoGotCreep {
 		attackerEntity: Unit
 		gameTime: number
 	}[] = []
-	
+	public teammatesXP = new Map<number, number>()
+
 	private readonly menu = new MenuManager()
 
 	public GameEvent(eventName: string, obj: any) {
+		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
+			if (hero.Team === LocalPlayer?.Hero?.Team) {
+				const currXp: Nullable<number> = this.teammatesXP.get(hero.PlayerID)
+
+				if (currXp !== hero.CurrentXP) {
+					console.log("Set XP for", hero.Name)
+					this.teammatesXP.set(hero.PlayerID, hero.CurrentXP)
+				}
+			}
+		})
+
+		console.log(this.teammatesXP)
+
 		const gameTime = GameRules?.RawGameTime ?? 0
 		if (!this.WhoGotTheCreepState || gameTime > this.menu.disibleMin.value * 60) {
 			return
@@ -137,5 +151,5 @@ EventsSDK.on("Tick", () => bootstrap.Tick())
 EventsSDK.on("GameEvent", (eventName: string, obj: any) => bootstrap.GameEvent(eventName, obj))
 EventsSDK.on("GameEnded", () => {
 	bootstrap.units = []
-	bootstrap.currentXP = 0
+	bootstrap.teammatesXP.clear()
 })
