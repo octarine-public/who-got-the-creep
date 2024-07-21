@@ -24,7 +24,7 @@ export class MenuManager {
 	private readonly nodeImage = Paths.Icons.icon_svg_alien
 
 	constructor() {
-		this.baseNode = this.visual.AddNode("Who Last Hit", this.nodeImage, "Shows who last hit the creep", -1)
+		this.baseNode = this.visual.AddNode("Creep ESP", this.nodeImage, "Multifunctional creep tool", -1)
 		this.baseNode.SortNodes = false
 
 		this.State = this.baseNode.AddToggle("State", true)
