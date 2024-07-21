@@ -42,16 +42,16 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public GameEvent(eventName: string, obj: any): void {
-		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
-			if (hero.Team === LocalPlayer?.Hero?.Team) {
-				const currXp: Nullable<number> = this.teammatesXP.get(hero.PlayerID)
+		const oldTeammatesXp = new Map<number, number>()
 
-				if (currXp !== hero.CurrentXP) {
-					console.log("Set XP for", hero.Name)
-					this.teammatesXP.set(hero.PlayerID, hero.CurrentXP)
-				}
-			}
-		})
+		if (this.XpESPState) {
+			this.teammatesXP.forEach((
+				value: number,
+				key: number
+			): void => {
+				oldTeammatesXp.set(key, value)
+			})
+		}
 
 		const gameTime = GameRules?.RawGameTime ?? 0
 		if (!this.WhoGotTheCreepState || gameTime > this.menu.disibleMin.value * 60) {
@@ -82,7 +82,16 @@ const bootstrap = new (class CWhoGotCreep {
 			const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
 
 			heroes.forEach((hero: Hero): void => {
-				console.log("name:", hero.Name, "distance:", killedEntity.Position.Distance(hero.Position))
+				console.log(
+					"name:",
+					hero.Name,
+					"distance:",
+					killedEntity.Position.Distance(hero.Position),
+					"xp:",
+					hero.CurrentXP,
+					"old xp:",
+					this.teammatesXP.get(hero.PlayerID)
+				)
 			})
 
 			this.units.push({
@@ -94,6 +103,17 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Tick() {
+		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
+			if (hero.Team === LocalPlayer?.Hero?.Team) {
+				const currXp: Nullable<number> = this.teammatesXP.get(hero.PlayerID)
+
+				if (currXp !== hero.CurrentXP) {
+					console.log("Set XP for", hero.Name)
+					this.teammatesXP.set(hero.PlayerID, hero.CurrentXP)
+				}
+			}
+		})
+
 		if (!this.WhoGotTheCreepState || this.IsPostGame || !GameRules?.RawGameTime) {
 			return
 		}
