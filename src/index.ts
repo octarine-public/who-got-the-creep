@@ -76,6 +76,7 @@ const bootstrap = new (class CWhoGotCreep {
 
 	public Tick() {
 		if (LocalPlayer?.Hero?.CurrentXP !== this.currentXP) {
+			console.log("old xp:", this.currentXP)
 			this.currentXP = LocalPlayer?.Hero?.CurrentXP!
 		}
 
@@ -97,7 +98,7 @@ const bootstrap = new (class CWhoGotCreep {
 		if (this.XpESPState) {
 			this.units.forEach((unit) => {
 				console.log("creep bounty xp:", unit.bounty)
-				console.log("new xp:", LocalPlayer?.Hero?.CurrentXP)
+				console.log("new xp:", this.currentXP)
 			})
 		}
 	}
