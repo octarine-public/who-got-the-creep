@@ -106,8 +106,11 @@ const bootstrap = new (class CWhoGotCreep {
 		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 			if (hero.Team === LocalPlayer?.Hero?.Team) {
 				const currXp: Nullable<number> = this.teammatesXP.get(hero.PlayerID)
-
+				
 				if (currXp !== hero.CurrentXP) {
+					console.log(currXp, hero.CurrentXP)
+
+
 					console.log("Set XP for", hero.Name)
 					this.teammatesXP.set(hero.PlayerID, hero.CurrentXP)
 				}
