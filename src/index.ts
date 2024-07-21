@@ -28,8 +28,8 @@ const bootstrap = new (class CWhoGotCreep {
 		gameTime: number
 	}[] = []
 
-	protected get State() {
-		return this.menu.State.value
+	protected get WhoGotTheCreepState() {
+		return this.menu.WhoGotTheCreepState.value
 	}
 
 	protected get IsPostGame() {
@@ -37,7 +37,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 	public GameEvent(eventName: string, obj: any) {
 		const gameTime = GameRules?.RawGameTime ?? 0
-		if (!this.State || gameTime > this.menu.disibleMin.value * 60) {
+		if (!this.WhoGotTheCreepState || gameTime > this.menu.disibleMin.value * 60) {
 			return
 		}
 
@@ -77,7 +77,7 @@ const bootstrap = new (class CWhoGotCreep {
 		)
 	}
 	public Tick() {
-		if (!this.State || this.IsPostGame || !GameRules?.RawGameTime) {
+		if (!this.WhoGotTheCreepState || this.IsPostGame || !GameRules?.RawGameTime) {
 			return
 		}
 		if (!this.units.length) {
@@ -92,7 +92,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Draw() {
-		if (!this.State || this.IsPostGame) {
+		if (!this.WhoGotTheCreepState || this.IsPostGame) {
 			return
 		}
 		this.units.forEach(unit => {

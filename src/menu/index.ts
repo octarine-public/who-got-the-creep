@@ -7,7 +7,8 @@ import {
 } from "github.com/octarine-public/wrapper/wrapper/Imports"
 
 export class MenuManager {
-	public readonly State: Menu.Toggle
+	public readonly WhoGotTheCreepState: Menu.Toggle
+	public readonly XpESPState: Menu.Toggle
 	public readonly showAllyCreeps: Menu.Toggle
 	public readonly showAllyHeroes: Menu.Toggle
 	public readonly size: Menu.Slider
@@ -32,7 +33,7 @@ export class MenuManager {
 		this.whoGotTheCreepNode = this.baseNode.AddNode("Who got the creep")
 		this.xpESP = this.baseNode.AddNode("XP ESP")
 
-		this.State = this.whoGotTheCreepNode.AddToggle("State", true)
+		this.WhoGotTheCreepState = this.whoGotTheCreepNode.AddToggle("State", true)
 		this.showAllyCreeps = this.whoGotTheCreepNode.AddToggle("Show ally creeps", false)
 		this.showAllyHeroes = this.whoGotTheCreepNode.AddToggle("Show ally heroes", false)
 		this.size = this.whoGotTheCreepNode.AddSlider("Size", 30, 25, 50)
@@ -41,6 +42,8 @@ export class MenuManager {
 		this.disibleMin = this.whoGotTheCreepNode.AddSlider("Disable after N minutes", 15, 5, 60)
 		this.reset = this.whoGotTheCreepNode.AddButton("Reset", "Reset settings to default values")
 		this.reset.OnValue(() => this.ResetSettings())
+
+		this.XpESPState = this.xpESP.AddToggle("State", true)
 	}
 
 	public MenuChanged(callback: () => void) {
@@ -51,7 +54,7 @@ export class MenuManager {
 		if (this.sleeper.Sleeping("ResetSettings")) {
 			return
 		}
-		this.State.value = this.State.defaultValue
+		this.WhoGotTheCreepState.value = this.WhoGotTheCreepState.defaultValue
 		this.showAllyCreeps.value = this.showAllyCreeps.defaultValue
 		this.showAllyHeroes.value = this.showAllyHeroes.defaultValue
 		this.size.value = this.size.defaultValue
