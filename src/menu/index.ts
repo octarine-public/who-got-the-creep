@@ -25,6 +25,8 @@ export class MenuManager {
 
 	constructor() {
 		this.baseNode = this.visual.AddNode("Creep ESP", this.nodeImage, "Multifunctional creep tool", -1)
+		this.baseNode.AddNode("A")
+		this.baseNode.AddNode("B")
 		this.baseNode.SortNodes = false
 
 		this.State = this.baseNode.AddToggle("State", true)
