@@ -59,7 +59,11 @@ const bootstrap = new (class CWhoGotCreep {
 				return
 			}
 
-			console.log(EntityManager.GetEntitiesByClass(Hero).length)
+			const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
+
+			heroes.forEach((hero: Hero): void => {
+				console.log("name:", hero.Name, "distance:", killedEntity.Position.Distance(hero.Position))
+			})
 
 			this.units.push({
 				lastCreepPos: killedEntity.Position.Clone(),
