@@ -23,6 +23,10 @@ interface AttackOutcome {
 }
 
 const bootstrap = new (class CWhoGotCreep {
+	constructor() {
+		this.menu.getTeammatesXp.OnPressed(this.GetTeammatesXp) 
+	}
+
 	public currentXP: number = LocalPlayer?.Hero ? LocalPlayer.Hero.CurrentXP : 0
 	public units: {
 		lastCreepPos: Vector3
@@ -33,7 +37,11 @@ const bootstrap = new (class CWhoGotCreep {
 
 	private readonly menu = new MenuManager()
 
-	public GameEvent(eventName: string, obj: any) {
+	public GetTeammatesXp(): void {
+		console.log(this.teammatesXP)
+	}
+
+	public GameEvent(eventName: string, obj: any): void {
 		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 			if (hero.Team === LocalPlayer?.Hero?.Team) {
 				const currXp: Nullable<number> = this.teammatesXP.get(hero.PlayerID)
@@ -44,8 +52,6 @@ const bootstrap = new (class CWhoGotCreep {
 				}
 			}
 		})
-
-		console.log(this.teammatesXP)
 
 		const gameTime = GameRules?.RawGameTime ?? 0
 		if (!this.WhoGotTheCreepState || gameTime > this.menu.disibleMin.value * 60) {

@@ -15,6 +15,7 @@ export class MenuManager {
 	public readonly timeToShow: Menu.Slider
 	public readonly opactity: Menu.Slider
 	public readonly disibleMin: Menu.Slider
+	public readonly getTeammatesXp: Menu.KeyBind
 
 	private readonly reset: Menu.Button
 
@@ -29,6 +30,7 @@ export class MenuManager {
 	constructor() {
 		this.baseNode = this.visual.AddNode("Creep ESP", this.nodeImage, "Multifunctional creep tool", -1)
 		this.baseNode.SortNodes = false
+		this.getTeammatesXp = this.baseNode.AddKeybind("Get teammates xp")
 
 		this.whoGotTheCreepNode = this.baseNode.AddNode("Who got the creep")
 		this.xpESP = this.baseNode.AddNode("XP ESP")
