@@ -68,6 +68,7 @@ const bootstrap = new (class CWhoGotCreep {
 			}
 
 			const xpPerHero: number = LocalPlayer?.Hero?.CurrentXP! - this.teammatesXP.get(LocalPlayer?.Hero?.Name!)!
+			console.log("(raw)", killedEntity.XPBounty / xpPerHero)
 			const heroesGainesXp: number = Math.floor(killedEntity.XPBounty / xpPerHero)
 
 			console.log(heroesGainesXp, "heroes gains xp")
