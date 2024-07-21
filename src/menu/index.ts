@@ -19,15 +19,18 @@ export class MenuManager {
 
 	private readonly visual = Menu.AddEntry("Visual")
 	private readonly baseNode: Menu.Node
+	private readonly whoGotTheCreepNode: Menu.Node
+	private readonly xpESP: Menu.Node
 	private readonly sleeper = new Sleeper()
 
 	private readonly nodeImage = Paths.Icons.icon_svg_alien
 
 	constructor() {
 		this.baseNode = this.visual.AddNode("Creep ESP", this.nodeImage, "Multifunctional creep tool", -1)
-		this.baseNode.AddNode("A")
-		this.baseNode.AddNode("B")
 		this.baseNode.SortNodes = false
+
+		this.whoGotTheCreepNode = this.baseNode.AddNode("Who got the creep")
+		this.xpESP = this.baseNode.AddNode("XP ESP")
 
 		this.State = this.baseNode.AddToggle("State", true)
 		this.showAllyCreeps = this.baseNode.AddToggle("Show ally creeps", false)
