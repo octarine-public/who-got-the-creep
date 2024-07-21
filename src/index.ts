@@ -27,7 +27,6 @@ const bootstrap = new (class CWhoGotCreep {
 		this.menu.getTeammatesXp.OnPressed(() => this.GetTeammatesXp()) 
 	}
 
-	public currentXP: number = LocalPlayer?.Hero ? LocalPlayer.Hero.CurrentXP : 0
 	public units: {
 		lastCreepPos: Vector3
 		attackerEntity: Unit
@@ -79,6 +78,13 @@ const bootstrap = new (class CWhoGotCreep {
 				return
 			}
 
+			const currentXp: number = LocalPlayer?.Hero?.CurrentXP!
+			const heroesAround: number = currentXp % 2 === 0 ?
+				currentXp :
+				currentXp! + 1  
+			
+			console.log("Around is", heroesAround, "heroes")
+
 			const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
 
 			heroes.forEach((hero: Hero): void => {
@@ -108,10 +114,6 @@ const bootstrap = new (class CWhoGotCreep {
 				const currXp: Nullable<number> = this.teammatesXP.get(hero.PlayerID)
 				
 				if (currXp !== hero.CurrentXP) {
-					console.log(currXp, hero.CurrentXP)
-
-
-					console.log("Set XP for", hero.Name)
 					this.teammatesXP.set(hero.PlayerID, hero.CurrentXP)
 				}
 			}
