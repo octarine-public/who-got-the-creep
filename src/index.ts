@@ -89,7 +89,10 @@ const bootstrap = new (class CWhoGotCreep {
 				}
 			})
 
-			if (Math.floor(killedEntity.XPBounty / alliesGainedXp) === xpPerHero) {
+			if (
+				heroesGainedXp > alliesGainedXp &&
+				Math.floor(killedEntity.XPBounty / alliesGainedXp) === xpPerHero
+			) {
 				heroesGainedXp--
 			}
 
