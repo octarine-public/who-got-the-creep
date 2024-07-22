@@ -47,7 +47,7 @@ const bootstrap = new (class CWhoGotCreep {
 	public GameEvent(eventName: string, obj: any): void {
 		const gameTime = GameRules?.RawGameTime ?? 0
 		if (
-			(!this.State(this.whoGotTheCreepMenu) && !this.State(this.xpESPMenu)) ||
+			// (!this.State(this.whoGotTheCreepMenu) && !this.State(this.xpESPMenu)) ||
 			gameTime > this.whoGotTheCreepMenu.disibleMin.value * 60
 		) {
 			return
