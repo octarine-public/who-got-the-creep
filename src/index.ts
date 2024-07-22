@@ -74,7 +74,7 @@ const bootstrap = new (class CWhoGotCreep {
 
 			const xpPerHero: number = localHero.CurrentXP! - this.teammatesXP.get(localHero.Name!)!
 
-			const heroesGainedXp: number = Math.floor(
+			let heroesGainedXp: number = Math.floor(
 				(killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
 			) 
 			let alliesGainedXp: number = 0
@@ -88,6 +88,10 @@ const bootstrap = new (class CWhoGotCreep {
 					alliesGainedXp++
 				}
 			})
+
+			if (Math.floor(killedEntity.XPBounty / alliesGainedXp) === xpPerHero) {
+				heroesGainedXp--
+			}
 
 			console.log("heroes gained xp", heroesGainedXp)
 			console.log("allies gained xp", alliesGainedXp)
