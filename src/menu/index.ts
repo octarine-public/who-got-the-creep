@@ -29,9 +29,9 @@ export class MenuManager {
 	}
 
 	public MenuChanged(callback: () => void) {
-		this.State.OnValue(() => callback)
-		this.WhoGotTheCreep.MenuChanged(callback)
-		this.XpESP.MenuChanged(callback)
+		// this.State.OnValue(() => callback)
+		// this.WhoGotTheCreep.MenuChanged(callback)
+		// this.XpESP.MenuChanged(callback)
 		this.reset.OnValue(() => this.ResetSettings(callback))
 	}
 
