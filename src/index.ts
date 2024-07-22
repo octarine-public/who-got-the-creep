@@ -46,6 +46,8 @@ const bootstrap = new (class CWhoGotCreep {
 
 	public GameEvent(eventName: string, obj: any): void {
 		console.log("game event processed")
+		const localHero: Hero = LocalPlayer?.Hero!
+		this.pSDK.DrawCircle("1", localHero, 1500, { Color: Color.Red })
 
 		const gameTime = GameRules?.RawGameTime ?? 0
 		if (
@@ -78,6 +80,7 @@ const bootstrap = new (class CWhoGotCreep {
 
 			const localHero: Nullable<Hero> = LocalPlayer?.Hero
 			if (!localHero) {
+				console.log("no local hero")
 				return
 			}
 
