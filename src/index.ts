@@ -9,6 +9,7 @@ import {
 	GUIInfo,
 	Hero,
 	LocalPlayer,
+	ParticleAttachment,
 	ParticlesSDK,
 	RendererSDK,
 	Sleeper,
@@ -124,7 +125,7 @@ const bootstrap = new (class CWhoGotCreep {
 
 	public Tick() {
 		if (!this.sleeper.Sleeping("WarningCircle") && this.wasSleeperTriggered) {
-			this.pSDK.DestroyByKey("WarningCircle")
+			this.pSDK.DestroyAll()
 			this.wasSleeperTriggered = false
 		}
 
@@ -178,8 +179,12 @@ const bootstrap = new (class CWhoGotCreep {
 					const localHero: Hero = LocalPlayer?.Hero!
 					const key: string = `WarningCircle`
 
-					this.pSDK.DrawCircle(key, localHero, 1500, { Position: localHero.Position, Color: Color.Red })
-					this.sleeper.Sleep(5000, new Date().toISOString())
+					this.pSDK.DrawCircle(key, localHero, 1500, {
+							Position: localHero.Position,
+							Color: Color.Red,
+							Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW 
+						})
+					this.sleeper.Sleep(2000, new Date().toISOString())
 					this.wasSleeperTriggered = true
 				}
 			}
