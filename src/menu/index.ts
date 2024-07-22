@@ -5,64 +5,44 @@ import {
 	ResetSettingsUpdated,
 	Sleeper
 } from "github.com/octarine-public/wrapper/wrapper/Imports"
+import { WhoGotTheCreepMenu } from "./who-got-the-creep"
+import { XpESPMenu } from "./xp-esp"
 
 export class MenuManager {
-	public readonly WhoGotTheCreepState: Menu.Toggle
-	public readonly XpESPState: Menu.Toggle
-	public readonly showAllyCreeps: Menu.Toggle
-	public readonly showAllyHeroes: Menu.Toggle
-	public readonly size: Menu.Slider
-	public readonly timeToShow: Menu.Slider
-	public readonly opactity: Menu.Slider
-	public readonly disibleMin: Menu.Slider
-	public readonly getTeammatesXp: Menu.KeyBind
+	public readonly State: Menu.Toggle
 
+	public readonly WhoGotTheCreep: WhoGotTheCreepMenu
+	public readonly XpESP: XpESPMenu
+
+	private readonly tree: Menu.Node
 	private readonly reset: Menu.Button
+	private readonly baseNode: Menu.Node = Menu.AddEntry("Visual")
 
-	private readonly visual = Menu.AddEntry("Visual")
-	private readonly baseNode: Menu.Node
-	private readonly whoGotTheCreepNode: Menu.Node
-	private readonly xpESP: Menu.Node
-	private readonly sleeper = new Sleeper()
 
-	private readonly nodeImage = Paths.Icons.icon_svg_alien
-
-	constructor() {
-		this.baseNode = this.visual.AddNode("Creep ESP", this.nodeImage, "Multifunctional creep tool", -1)
-		this.baseNode.SortNodes = false
-		this.getTeammatesXp = this.baseNode.AddKeybind("Get teammates xp")
-
-		this.whoGotTheCreepNode = this.baseNode.AddNode("Who got the creep")
-		this.xpESP = this.baseNode.AddNode("XP ESP")
-
-		this.WhoGotTheCreepState = this.whoGotTheCreepNode.AddToggle("State", true)
-		this.showAllyCreeps = this.whoGotTheCreepNode.AddToggle("Show ally creeps", false)
-		this.showAllyHeroes = this.whoGotTheCreepNode.AddToggle("Show ally heroes", false)
-		this.size = this.whoGotTheCreepNode.AddSlider("Size", 30, 25, 50)
-		this.timeToShow = this.whoGotTheCreepNode.AddSlider("Time to show seconds", 2, 1, 5)
-		this.opactity = this.whoGotTheCreepNode.AddSlider("Opacity", 85, 40, 100)
-		this.disibleMin = this.whoGotTheCreepNode.AddSlider("Disable after N minutes", 15, 5, 60)
-		this.reset = this.whoGotTheCreepNode.AddButton("Reset", "Reset settings to default values")
-		this.reset.OnValue(() => this.ResetSettings())
-
-		this.XpESPState = this.xpESP.AddToggle("State", true)
+	constructor(private readonly sleeper: Sleeper) {
+		this.tree = this.baseNode.AddNode("Creep ESP", Paths.Icons.icon_svg_alien)
+		this.tree.SortNodes = false
+		this.State = this.tree.AddToggle("State", true)
+		this.WhoGotTheCreep = new WhoGotTheCreepMenu(this.tree)
+		this.XpESP = new XpESPMenu(this.tree)
+		this.reset = this.tree.AddButton("Reset settings", "Reset settings to default")
 	}
 
 	public MenuChanged(callback: () => void) {
-		this.reset.OnValue(() => callback())
+		this.State.OnValue(() => callback)
+		this.WhoGotTheCreep.MenuChanged(callback)
+		this.XpESP.MenuChanged(callback)
+		this.reset.OnValue(() => this.ResetSettings(callback))
 	}
 
-	public ResetSettings() {
+	public ResetSettings(callback: () => void) {
 		if (this.sleeper.Sleeping("ResetSettings")) {
 			return
 		}
-		this.WhoGotTheCreepState.value = this.WhoGotTheCreepState.defaultValue
-		this.showAllyCreeps.value = this.showAllyCreeps.defaultValue
-		this.showAllyHeroes.value = this.showAllyHeroes.defaultValue
-		this.size.value = this.size.defaultValue
-		this.timeToShow.value = this.timeToShow.defaultValue
-		this.opactity.value = this.opactity.defaultValue
-		this.disibleMin.value = this.disibleMin.defaultValue
+		
+		this.WhoGotTheCreep.ResetSettings(callback)
+		this.XpESP.ResetSettings(callback)
+		this.State.value = this.State.defaultValue
 		NotificationsSDK.Push(new ResetSettingsUpdated())
 		this.sleeper.Sleep(2 * 1000, "ResetSettings")
 	}

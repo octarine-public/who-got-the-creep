@@ -10,12 +10,16 @@ import {
 	Hero,
 	LocalPlayer,
 	RendererSDK,
+	Sleeper,
 	Unit,
 	Vector2,
 	Vector3
 } from "github.com/octarine-public/wrapper/wrapper/Imports"
 
 import { MenuManager } from "./menu/index"
+import { BaseMenu } from "./menu/base"
+import { WhoGotTheCreepMenu } from "./menu/who-got-the-creep"
+import { XpESPMenu } from "./menu/xp-esp"
 
 interface AttackOutcome {
 	entindex_killed: number
@@ -23,9 +27,7 @@ interface AttackOutcome {
 }
 
 const bootstrap = new (class CWhoGotCreep {
-	constructor() {
-		this.menu.getTeammatesXp.OnPressed(() => this.GetTeammatesXp()) 
-	}
+	constructor() {}
 
 	public units: {
 		lastCreepPos: Vector3
@@ -35,7 +37,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}[] = []
 	public teammatesXP = new Map<string, number>()
 
-	private readonly menu = new MenuManager()
+	private readonly menu = new MenuManager(new Sleeper())
 
 	public GetTeammatesXp(): void {
 		console.log(this.teammatesXP)
@@ -43,7 +45,14 @@ const bootstrap = new (class CWhoGotCreep {
 
 	public GameEvent(eventName: string, obj: any): void {
 		const gameTime = GameRules?.RawGameTime ?? 0
-		if (!this.WhoGotTheCreepState || gameTime > this.menu.disibleMin.value * 60) {
+		const whoGotTheCreepMenu: WhoGotTheCreepMenu = this.menu.WhoGotTheCreep
+		const xpESPMenu: XpESPMenu = this.menu.XpESP
+
+
+		if (
+			(!this.State(whoGotTheCreepMenu) && !this.State(xpESPMenu)) ||
+			gameTime > whoGotTheCreepMenu.disibleMin.value * 60
+		) {
 			return
 		}
 
@@ -62,8 +71,8 @@ const bootstrap = new (class CWhoGotCreep {
 			attackerEntity.IsHero
 		) {
 			if (
-				(!killedEntity.IsEnemy(attackerEntity) && !this.menu.showAllyCreeps.value) ||
-				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.showAllyHeroes.value)
+				(!killedEntity.IsEnemy(attackerEntity) && !whoGotTheCreepMenu.showAllyCreeps.value) ||
+				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !whoGotTheCreepMenu.showAllyHeroes.value)
 			) {
 				return
 			}
@@ -137,7 +146,9 @@ const bootstrap = new (class CWhoGotCreep {
 			}
 		})
 
-		if (!this.WhoGotTheCreepState || this.IsPostGame || !GameRules?.RawGameTime) {
+		const targetMenu: WhoGotTheCreepMenu = this.menu.WhoGotTheCreep
+
+		if (!this.State(targetMenu) || this.IsPostGame || !GameRules?.RawGameTime) {
 			return
 		}
 		if (!this.units.length) {
@@ -146,13 +157,14 @@ const bootstrap = new (class CWhoGotCreep {
 
 		const gameTime = this.units[0].gameTime
 
-		if (gameTime + this.menu.timeToShow.value < GameRules?.RawGameTime) {
+		if (gameTime + targetMenu.timeToShow.value < GameRules?.RawGameTime) {
 			this.units.shift()
 		}
 	}
 
 	public Draw(): void {
-		if (!this.WhoGotTheCreepState || this.IsPostGame) {
+		const targetMenu: WhoGotTheCreepMenu = this.menu.WhoGotTheCreep
+		if (!this.State(targetMenu) || this.IsPostGame) {
 			return
 		}
 
@@ -160,7 +172,7 @@ const bootstrap = new (class CWhoGotCreep {
 			const creepPos = unit.lastCreepPos
 			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
 			if (w2sPosition !== undefined) {
-				const size = GUIInfo.ScaleWidth(this.menu.size.value)
+				const size = GUIInfo.ScaleWidth(targetMenu.size.value)
 				const heroSize = new Vector2(size, size)
 				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
 				RendererSDK.Image(
@@ -168,7 +180,7 @@ const bootstrap = new (class CWhoGotCreep {
 					position,
 					-1,
 					heroSize,
-					Color.White.SetA(this.menu.opactity.value * 2.55)
+					Color.White.SetA(targetMenu.opactity.value * 2.55)
 				)
 
 				if (unit.enemiesAround !== 0) {
@@ -194,12 +206,8 @@ const bootstrap = new (class CWhoGotCreep {
 		)
 	}
 
-	protected get WhoGotTheCreepState(): boolean {
-		return this.menu.WhoGotTheCreepState.value
-	}
-
-	protected get XpESPState(): boolean {
-		return this.menu.XpESPState.value
+	protected State(menu: BaseMenu): boolean {
+		return menu.State.value
 	}
 
 	protected get IsPostGame(): boolean {
