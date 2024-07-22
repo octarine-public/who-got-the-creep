@@ -173,8 +173,6 @@ const bootstrap = new (class CWhoGotCreep {
 			}
 
 			if (unit.enemiesAround !== 0) {
-				const w2sPosition = RendererSDK.WorldToScreen(LocalPlayer?.Hero?.Position!)
-
 				if (w2sPosition) {
 					RendererSDK.OutlinedCircle(
 						w2sPosition,
