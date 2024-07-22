@@ -41,9 +41,12 @@ const bootstrap = new (class CWhoGotCreep {
 	public teammatesXP = new Map<string, number>()
 
 	private readonly pSDK = new ParticlesSDK()
-	private readonly menu = new MenuManager(new Sleeper())
+	private readonly sleeper = new Sleeper()
+	private readonly menu = new MenuManager(this.sleeper)
 	private readonly tracker: TrackerMenu = this.menu.Tracker
 	private readonly detector: DetectorMenu = this.menu.Detector
+
+	private wasSleeperTriggered: boolean = false
 
 	public GameEvent(eventName: string, obj: any): void {
 		const gameTime = GameRules?.RawGameTime ?? 0
@@ -120,6 +123,11 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Tick() {
+		if (!this.sleeper.Sleeping("WarningCircle") && this.wasSleeperTriggered) {
+			this.pSDK.DestroyByKey("WarningCircle")
+			this.wasSleeperTriggered = false
+		}
+
 		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 			if (hero.Team === LocalPlayer?.Hero?.Team) {
 				const currXp: Nullable<number> = this.teammatesXP.get(hero.Name)
@@ -168,8 +176,11 @@ const bootstrap = new (class CWhoGotCreep {
 
 				if (unit.enemiesAround !== 0) {
 					const localHero: Hero = LocalPlayer?.Hero!
+					const key: string = `WarningCircle`
 
-					this.pSDK.DrawCircle("1", localHero, 1500, { Color: Color.Red })
+					this.pSDK.DrawCircle(key, localHero, 1500, { Position: localHero.Position, Color: Color.Red })
+					this.sleeper.Sleep(5000, new Date().toISOString())
+					this.wasSleeperTriggered = true
 				}
 			}
 		})
