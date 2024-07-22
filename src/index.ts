@@ -163,18 +163,9 @@ const bootstrap = new (class CWhoGotCreep {
 				)
 
 				if (unit.enemiesAround !== 0) {
-					const circleSize = new Vector2(GUIInfo.ScaleWidth(1800), GUIInfo.ScaleWidth(1800)) 
-					const circlePosition = w2sPosition.Subtract(circleSize.DivideScalar(2))
 					const localHero: Hero = LocalPlayer?.Hero!
 
 					this.pSDK.DrawCircle("1", localHero, 1500, { Color: Color.Red })
-
-					RendererSDK.OutlinedCircle(
-						circlePosition,
-						circleSize,
-						Color.Red,
-						3,
-					)
 				}
 			}
 		})
