@@ -5,6 +5,7 @@ import {
 	ResetSettingsUpdated,
 	Sleeper
 } from "github.com/octarine-public/wrapper/wrapper/Imports"
+import { BaseMenu } from "./base"
 import { WhoGotTheCreepMenu } from "./who-got-the-creep"
 import { XpESPMenu } from "./xp-esp"
 
@@ -29,9 +30,9 @@ export class MenuManager {
 	}
 
 	public MenuChanged(callback: () => void) {
-		// this.State.OnValue(() => callback)
-		// this.WhoGotTheCreep.MenuChanged(callback)
-		// this.XpESP.MenuChanged(callback)
+		this.State.OnValue(() => callback)
+		this.WhoGotTheCreep.MenuChanged(callback)
+		this.XpESP.MenuChanged(callback)
 		this.reset.OnValue(() => this.ResetSettings(callback))
 	}
 

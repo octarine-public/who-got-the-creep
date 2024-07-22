@@ -43,138 +43,136 @@ const bootstrap = new (class CWhoGotCreep {
 	private readonly xpESPMenu = this.menu.XpESP
 
 	public GameEvent(eventName: string, obj: any): void {
-		console.log("Game event processed")
-// 
-		// const gameTime = GameRules?.RawGameTime ?? 0
-		// if (
-		// 	(!this.State(this.whoGotTheCreepMenu) && !this.State(this.xpESPMenu)) ||
-		// 	gameTime > this.whoGotTheCreepMenu.disibleMin.value * 60
-		// ) {
-		// 	return
-		// }
+		const gameTime = GameRules?.RawGameTime ?? 0
+		if (
+			(!this.State(this.whoGotTheCreepMenu) && !this.State(this.xpESPMenu)) ||
+			gameTime > this.whoGotTheCreepMenu.disibleMin.value * 60
+		) {
+			return
+		}
 
-		// if (!this.ShouldAttackOutcome(eventName, obj)) {
-		// 	return
-		// }
-		// const [killedEntity, attackerEntity] = [
-		// 	EntityManager.EntityByIndex(obj.entindex_killed),
-		// 	EntityManager.EntityByIndex(obj.entindex_attacker)
-		// ]
+		if (!this.ShouldAttackOutcome(eventName, obj)) {
+			return
+		}
+		const [killedEntity, attackerEntity] = [
+			EntityManager.EntityByIndex(obj.entindex_killed),
+			EntityManager.EntityByIndex(obj.entindex_attacker)
+		]
 
-		// if (
-		// 	killedEntity instanceof Unit &&
-		// 	killedEntity.IsCreep &&
-		// 	attackerEntity instanceof Unit &&
-		// 	attackerEntity.IsHero
-		// ) {
-		// 	if (
-		// 		(!killedEntity.IsEnemy(attackerEntity) && !this.whoGotTheCreepMenu.showAllyCreeps.value) ||
-		// 		(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.whoGotTheCreepMenu.showAllyHeroes.value)
-		// 	) {
-		// 		return
-		// 	}
+		if (
+			killedEntity instanceof Unit &&
+			killedEntity.IsCreep &&
+			attackerEntity instanceof Unit &&
+			attackerEntity.IsHero
+		) {
+			if (
+				(!killedEntity.IsEnemy(attackerEntity) && !this.whoGotTheCreepMenu.showAllyCreeps.value) ||
+				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.whoGotTheCreepMenu.showAllyHeroes.value)
+			) {
+				return
+			}
 
-		// 	const localHero: Nullable<Hero> = LocalPlayer?.Hero
-		// 	if (!localHero) {
-		// 		return
-		// 	}
+			const localHero: Nullable<Hero> = LocalPlayer?.Hero
+			if (!localHero) {
+				return
+			}
 
-		// 	const xpPerHero: number = localHero.CurrentXP! - this.teammatesXP.get(localHero.Name!)!
+			const xpPerHero: number = localHero.CurrentXP! - this.teammatesXP.get(localHero.Name!)!
 
-		// 	let heroesGainedXp: number = Math.floor(
-		// 		(killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
-		// 	) 
-		// 	let alliesGainedXp: number = 0
+			let heroesGainedXp: number = Math.floor(
+				(killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
+			) 
+			let alliesGainedXp: number = 0
 
-		// 	EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
-		// 		if (
-		// 			(hero.CurrentXP !== this.teammatesXP.get(hero.Name) || hero.Level === 30) &&
-		// 			localHero.Team === hero.Team &&
-		// 			hero.Distance(killedEntity) <= 1500
-		// 		) {
-		// 			alliesGainedXp++
-		// 		}
-		// 	})
+			EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
+				if (
+					(hero.CurrentXP !== this.teammatesXP.get(hero.Name) || hero.Level === 30) &&
+					localHero.Team === hero.Team &&
+					hero.Distance(killedEntity) <= 1500
+				) {
+					alliesGainedXp++
+				}
+			})
 
-		// 	console.log("heroes gained xp", heroesGainedXp)
-		// 	console.log("allies gained xp", alliesGainedXp)
-		// 	console.log("enemies gained xp", )
+			console.log("heroes gained xp", heroesGainedXp)
+			console.log("allies gained xp", alliesGainedXp)
+			console.log("enemies gained xp", )
 
-		// 	if ((heroesGainedXp - alliesGainedXp) > 0) {
+			if ((heroesGainedXp - alliesGainedXp) > 0) {
 				
-		// 	}
+			}
 
-		// 	console.log("creep:", killedEntity.Name, "bounty", killedEntity.XPBounty, "extra bounty", killedEntity.XPBountyExtra)
+			console.log("creep:", killedEntity.Name, "bounty", killedEntity.XPBounty, "extra bounty", killedEntity.XPBountyExtra)
 
-		// 	this.units.push({
-		// 		lastCreepPos: killedEntity.Position.Clone(),
-		// 		attackerEntity,
-		// 		gameTime,
-		// 		enemiesAround: heroesGainedXp - alliesGainedXp
-		// 	})
-		// }
+			this.units.push({
+				lastCreepPos: killedEntity.Position.Clone(),
+				attackerEntity,
+				gameTime,
+				enemiesAround: heroesGainedXp - alliesGainedXp
+			})
+		}
 	}
 
 	public Tick() {
-		// EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
-		// 	if (hero.Team === LocalPlayer?.Hero?.Team) {
-		// 		const currXp: Nullable<number> = this.teammatesXP.get(hero.Name)
+		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
+			if (hero.Team === LocalPlayer?.Hero?.Team) {
+				const currXp: Nullable<number> = this.teammatesXP.get(hero.Name)
 				
-		// 		if (currXp !== hero.CurrentXP) {
-		// 			this.teammatesXP.set(hero.Name, hero.CurrentXP)
-		// 		}
-		// 	}
-		// })
+				if (currXp !== hero.CurrentXP) {
+					this.teammatesXP.set(hero.Name, hero.CurrentXP)
+				}
+			}
+		})
 
-		// const targetMenu: WhoGotTheCreepMenu = this.menu.WhoGotTheCreep
+		const targetMenu: WhoGotTheCreepMenu = this.menu.WhoGotTheCreep
 
-		// if (!this.State(targetMenu) || this.IsPostGame || !GameRules?.RawGameTime) {
-		// 	return
-		// }
-		// if (!this.units.length) {
-		// 	return
-		// }
+		if (!this.State(targetMenu) || this.IsPostGame || !GameRules?.RawGameTime) {
+			return
+		}
+		if (!this.units.length) {
+			return
+		}
 
-		// const gameTime = this.units[0].gameTime
+		const gameTime = this.units[0].gameTime
 
-		// if (gameTime + targetMenu.timeToShow.value < GameRules?.RawGameTime) {
-		// 	this.units.shift()
-		// }
+		if (gameTime + targetMenu.timeToShow.value < GameRules?.RawGameTime) {
+			this.units.shift()
+		}
 	}
 
 	public Draw(): void {
-		// if (!this.State(this.whoGotTheCreepMenu) || this.IsPostGame) {
-		// 	return
-		// }
+		if (!this.State(this.whoGotTheCreepMenu) || this.IsPostGame) {
+			return
+		}
 
-		// this.units.forEach(unit => {
-		// 	const creepPos = unit.lastCreepPos
-		// 	const w2sPosition = RendererSDK.WorldToScreen(creepPos)
-		// 	if (w2sPosition !== undefined) {
-		// 		const size = GUIInfo.ScaleWidth(this.whoGotTheCreepMenu.size.value)
-		// 		const heroSize = new Vector2(size, size)
-		// 		const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
-		// 		RendererSDK.Image(
-		// 			`panorama/images/heroes/icons/${unit.attackerEntity.Name}_png.vtex_c`,
-		// 			position,
-		// 			-1,
-		// 			heroSize,
-		// 			Color.White.SetA(this.whoGotTheCreepMenu.opactity.value * 2.55)
-		// 		)
+		this.units.forEach(unit => {
+			const creepPos = unit.lastCreepPos
+			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
+			if (w2sPosition !== undefined) {
+				const size = GUIInfo.ScaleWidth(this.whoGotTheCreepMenu.size.value)
+				const heroSize = new Vector2(size, size)
+				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
+				RendererSDK.Image(
+					`panorama/images/heroes/icons/${unit.attackerEntity.Name}_png.vtex_c`,
+					position,
+					-1,
+					heroSize,
+					Color.White.SetA(this.whoGotTheCreepMenu.opactity.value * 2.55)
+				)
 
-		// 		if (unit.enemiesAround !== 0) {
-		// 			const circleSize = new Vector2(GUIInfo.ScaleWidth(1800), GUIInfo.ScaleWidth(1800)) 
-		// 			const circlePosition = w2sPosition.Subtract(circleSize.DivideScalar(2))
+				if (unit.enemiesAround !== 0) {
+					const circleSize = new Vector2(GUIInfo.ScaleWidth(1800), GUIInfo.ScaleWidth(1800)) 
+					const circlePosition = w2sPosition.Subtract(circleSize.DivideScalar(2))
 
-		// 			RendererSDK.OutlinedCircle(
-		// 				circlePosition,
-		// 				circleSize,
-		// 				Color.Red,
-		// 				3,
-		// 			)
-		// 		}
-		// 	}
-		// })
+					RendererSDK.OutlinedCircle(
+						circlePosition,
+						circleSize,
+						Color.Red,
+						3,
+					)
+				}
+			}
+		})
 	}
 
 	protected ShouldAttackOutcome(eventName: string, obj: any): obj is AttackOutcome {
