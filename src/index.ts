@@ -9,6 +9,7 @@ import {
 	GUIInfo,
 	Hero,
 	LocalPlayer,
+	ParticlesSDK,
 	RendererSDK,
 	Sleeper,
 	Unit,
@@ -38,6 +39,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}[] = []
 	public teammatesXP = new Map<string, number>()
 
+	private readonly pSDK = new ParticlesSDK()
 	private readonly menu = new MenuManager(new Sleeper())
 	private readonly whoGotTheCreepMenu = this.menu.WhoGotTheCreep
 	private readonly xpESPMenu = this.menu.XpESP
@@ -163,6 +165,9 @@ const bootstrap = new (class CWhoGotCreep {
 				if (unit.enemiesAround !== 0) {
 					const circleSize = new Vector2(GUIInfo.ScaleWidth(1800), GUIInfo.ScaleWidth(1800)) 
 					const circlePosition = w2sPosition.Subtract(circleSize.DivideScalar(2))
+					const localHero: Hero = LocalPlayer?.Hero!
+
+					this.pSDK.DrawCircle("1", localHero, 1500, { Color: Color.Red })
 
 					RendererSDK.OutlinedCircle(
 						circlePosition,
