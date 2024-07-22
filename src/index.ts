@@ -69,16 +69,25 @@ const bootstrap = new (class CWhoGotCreep {
 
 			const xpPerHero: number = LocalPlayer?.Hero?.CurrentXP! - 
 				this.teammatesXP.get(LocalPlayer?.Hero?.Name!)!
-			// const heroesGainesXp: number = Math.floor(
-				// (killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
-			// )
 
-			const heroesGainedXp: number = (killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero 
+			const heroesGainedXp: number = Math.floor(
+				(killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
+			) 
 
 			let alliesGainedXp: number = 0
 
 			EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
-				if (hero.CurrentXP !== this.teammatesXP.get(hero.Name) && hero.Distance(killedEntity) <= 1500) {
+				console.log(
+					hero.Team === killedEntity.Team,
+					hero.Name,
+					hero.CurrentXP,
+					this.teammatesXP.get(hero.Name)
+				)
+				if (
+					hero.Team === killedEntity.Team &&
+					hero.CurrentXP !== this.teammatesXP.get(hero.Name) &&
+					hero.Distance(killedEntity) <= 1500
+				) {
 					alliesGainedXp++
 				}
 			})
