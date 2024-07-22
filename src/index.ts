@@ -121,6 +121,8 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Tick() {
+		console.log(123)
+
 		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 			if (hero.Team === LocalPlayer?.Hero?.Team) {
 				const currXp: Nullable<number> = this.teammatesXP.get(hero.Name)
@@ -172,8 +174,8 @@ const bootstrap = new (class CWhoGotCreep {
 					const key: string = `WarningCircle_${new Date().toISOString()}`
 
 					this.pSDK.DrawCircle(key, localHero, 1500, { Color: Color.Red })
-					this.sleeper.Sleep(5000, new Date().toISOString())
-					this.pSDK.DestroyByKey(key)
+					// this.sleeper.Sleep(5000, new Date().toISOString())
+					// this.pSDK.DestroyByKey(key)
 				}
 			}
 		})
