@@ -31,6 +31,7 @@ const bootstrap = new (class CWhoGotCreep {
 		lastCreepPos: Vector3
 		attackerEntity: Unit
 		gameTime: number
+		enemiesAround: number
 	}[] = []
 	public teammatesXP = new Map<string, number>()
 
@@ -91,18 +92,10 @@ const bootstrap = new (class CWhoGotCreep {
 
 			console.log("heroes gained xp", heroesGainedXp)
 			console.log("allies gained xp", alliesGainedXp)
-			console.log("enemies gained xp", heroesGainedXp - alliesGainedXp)
+			console.log("enemies gained xp", )
 
 			if ((heroesGainedXp - alliesGainedXp) > 0) {
-				const w2sPosition = RendererSDK.WorldToScreen(localHero.Position)
-
-				if (w2sPosition) {
-					RendererSDK.OutlinedCircle(
-						w2sPosition,
-						new Vector2(1500, 1500),
-						Color.Red
-					)	
-				}
+				
 			}
 
 			const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
@@ -127,7 +120,8 @@ const bootstrap = new (class CWhoGotCreep {
 			this.units.push({
 				lastCreepPos: killedEntity.Position.Clone(),
 				attackerEntity,
-				gameTime
+				gameTime,
+				enemiesAround: heroesGainedXp - alliesGainedXp
 			})
 		}
 	}
@@ -176,6 +170,18 @@ const bootstrap = new (class CWhoGotCreep {
 					heroSize,
 					Color.White.SetA(this.menu.opactity.value * 2.55)
 				)
+			}
+
+			if (unit.enemiesAround !== 0) {
+				const w2sPosition = RendererSDK.WorldToScreen(LocalPlayer?.Hero?.Position!)
+
+				if (w2sPosition) {
+					RendererSDK.OutlinedCircle(
+						w2sPosition,
+						new Vector2(1500, 1500),
+						Color.Red
+					)	
+				}
 			}
 		})
 	}
