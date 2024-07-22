@@ -101,7 +101,6 @@ const bootstrap = new (class CWhoGotCreep {
 			console.log("heroes gained xp", heroesGainedXp)
 			console.log("allies gained xp", alliesGainedXp)
 			console.log("enemies gained xp", heroesGainedXp - alliesGainedXp)
-		
 			console.log("creep:", killedEntity.Name, "bounty", killedEntity.XPBounty, "extra bounty", killedEntity.XPBountyExtra)
 
 			EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
