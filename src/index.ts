@@ -19,7 +19,8 @@ import {
 
 import { MenuManager } from "./menu/index"
 import { BaseMenu } from "./menu/base"
-import { WhoGotTheCreepMenu } from "./menu/who-got-the-creep"
+import { TrackerMenu } from "./menu/tracker"
+import { DetectorMenu } from "./menu/detector"
 
 interface AttackOutcome {
 	entindex_killed: number
@@ -41,18 +42,14 @@ const bootstrap = new (class CWhoGotCreep {
 
 	private readonly pSDK = new ParticlesSDK()
 	private readonly menu = new MenuManager(new Sleeper())
-	private readonly whoGotTheCreepMenu = this.menu.WhoGotTheCreep
-	private readonly xpESPMenu = this.menu.XpESP
+	private readonly tracker: TrackerMenu = this.menu.Tracker
+	private readonly detector: DetectorMenu = this.menu.Detector
 
 	public GameEvent(eventName: string, obj: any): void {
-		console.log("game event processed")
-		const localHero: Hero = LocalPlayer?.Hero!
-		this.pSDK.DrawCircle("1", localHero, 1500, { Color: Color.Red })
-
 		const gameTime = GameRules?.RawGameTime ?? 0
 		if (
-			// (!this.State(this.whoGotTheCreepMenu) && !this.State(this.xpESPMenu)) ||
-			gameTime > this.whoGotTheCreepMenu.disibleMin.value * 60
+			(!this.State(this.tracker) && !this.State(this.detector)) ||
+			gameTime > this.tracker.disibleMin.value * 60
 		) {
 			return
 		}
@@ -72,15 +69,14 @@ const bootstrap = new (class CWhoGotCreep {
 			attackerEntity.IsHero
 		) {
 			if (
-				(!killedEntity.IsEnemy(attackerEntity) && !this.whoGotTheCreepMenu.showAllyCreeps.value) ||
-				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.whoGotTheCreepMenu.showAllyHeroes.value)
+				(!killedEntity.IsEnemy(attackerEntity) && !this.tracker.showAllyCreeps.value) ||
+				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.tracker.showAllyHeroes.value)
 			) {
 				return
 			}
 
 			const localHero: Nullable<Hero> = LocalPlayer?.Hero
 			if (!localHero) {
-				console.log("no local hero")
 				return
 			}
 
@@ -131,7 +127,7 @@ const bootstrap = new (class CWhoGotCreep {
 			}
 		})
 
-		const targetMenu: WhoGotTheCreepMenu = this.menu.WhoGotTheCreep
+		const targetMenu: TrackerMenu = this.menu.Tracker
 
 		if (!this.State(targetMenu) || this.IsPostGame || !GameRules?.RawGameTime) {
 			return
@@ -148,7 +144,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Draw(): void {
-		if (!this.State(this.whoGotTheCreepMenu) || this.IsPostGame) {
+		if (!this.State(this.tracker) || this.IsPostGame) {
 			return
 		}
 
@@ -156,7 +152,7 @@ const bootstrap = new (class CWhoGotCreep {
 			const creepPos = unit.lastCreepPos
 			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
 			if (w2sPosition !== undefined) {
-				const size = GUIInfo.ScaleWidth(this.whoGotTheCreepMenu.size.value)
+				const size = GUIInfo.ScaleWidth(this.tracker.size.value)
 				const heroSize = new Vector2(size, size)
 				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
 				RendererSDK.Image(
@@ -164,7 +160,7 @@ const bootstrap = new (class CWhoGotCreep {
 					position,
 					-1,
 					heroSize,
-					Color.White.SetA(this.whoGotTheCreepMenu.opactity.value * 2.55)
+					Color.White.SetA(this.tracker.opactity.value * 2.55)
 				)
 
 				if (unit.enemiesAround !== 0) {
