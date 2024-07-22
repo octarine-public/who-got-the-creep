@@ -3,7 +3,6 @@ import "../translations"
 import {
 	Color,
 	DOTAGameState,
-	Entity,
 	EntityManager,
 	EventsSDK,
 	GameRules,
@@ -42,7 +41,11 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Units: CreepData[] = []
-	public Particles: { particle: Particle, destroyAt: Date }[] = []
+	public Particles: { 
+		particle: Particle
+		enemiesCount: number
+		gametime: number
+	}[] = []
 	public readonly AlliesXP = new Map<string, number>()
 
 	private readonly pSDK = new ParticlesSDK()
@@ -52,19 +55,10 @@ const bootstrap = new (class CWhoGotCreep {
 	private readonly detector: DetectorMenu = this.menu.Detector
 
 	public GameEvent(eventName: string, obj: any): void {
-		const gameTime = GameRules?.RawGameTime ?? 0
-
-		if (
-			!this.State(this.detector) &&
-			(!this.State(this.tracker) && 
-				this.tracker.DisibleMin.value * 60 > gameTime)
-		) {
-
-		}
-
-		if (!this.ShouldAttackOutcome(eventName, obj)) {
+		if (!this.shouldAttackOutcome(eventName, obj)) {
 			return
 		}
+
 		const [killedEntity, attackerEntity] = [
 			EntityManager.EntityByIndex(obj.entindex_killed),
 			EntityManager.EntityByIndex(obj.entindex_attacker)
@@ -79,72 +73,148 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		if (
-			this.State(this.tracker) && (
-				(
-					!killedEntity.IsEnemy(attackerEntity) &&
-					!this.tracker.ShowAllyCreeps.value
-				) ||
-				(
-					!attackerEntity.IsMyHero &&
-					!attackerEntity.IsEnemy() &&
-					!this.tracker.ShowAllyHeroes.value
-				)
-			)
-		) {
-			this.Units.push({
-				lastCreepPos: killedEntity.Position.Clone(),
-				attackerEntity,
-				gameTime,
-			})
-		}
-
-		this.DetectorGameEvent(killedEntity, attackerEntity)
+		this.trackerGameEvent(killedEntity, attackerEntity)
+		this.detectorGameEvent(killedEntity, attackerEntity)
 	}
 
 	public Tick() {
-		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
-			if (hero.Team === LocalPlayer?.Hero?.Team) {
-				const currXp: Nullable<number> = this.AlliesXP.get(hero.Name)
-				
-				if (currXp !== hero.CurrentXP) {
-					this.AlliesXP.set(hero.Name, hero.CurrentXP)
-				}
-			}
-		})
-
-		const targetMenu: TrackerMenu = this.menu.Tracker
-
-		if (
-			!this.State(targetMenu) ||
-			this.IsPostGame ||
-			!GameRules?.RawGameTime
-		) {
-			return
-		}
-		if (!this.Units.length) {
-			return
-		}
-
-		const gameTime = this.Units[0].gameTime
-
-		if (gameTime + targetMenu.TimeToShow.value < GameRules?.RawGameTime) {
-			this.Units.shift()
-		}
+		this.updateAlliesXP()
+		this.clearOldHeroesIcons()
 	}
 
 	public Draw(): void {
-		const particle = this.Particles.at(0)
+		this.destroyOldParticles()
+		this.drawHeroesIcons()
+		this.drawEnemiesCountOnHealthbar()
+	}
 
-		if (
-			particle !== undefined &&
-			particle.destroyAt < new Date()
-		) {
-			particle.particle.Destroy()
-			this.Particles.shift()
+	private get isPostGame(): boolean {
+		return ( 
+			GameRules === undefined || 
+			GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
+		)
+	}
+
+	private get localHero(): Nullable<Hero> {
+		return LocalPlayer?.Hero
+	}
+
+	private state(menu: BaseMenu): boolean {
+		return menu.State.value
+	}
+
+	private getXpDiff(hero: Hero): number {
+		return hero.CurrentXP - this.AlliesXP.get(hero.Name)!
+	}
+
+	private shouldAttackOutcome(eventName: string, obj: any): obj is AttackOutcome {
+		return (
+			eventName === "entity_killed" &&
+			typeof obj.entindex_killed === "number" &&
+			typeof obj.entindex_attacker === "number"
+		)
+	}
+
+	private trackerGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
+		if (!this.state(this.tracker)) {
+			return
 		}
 
-		if (!this.State(this.tracker) || this.IsPostGame) {
+		const gametime: number = GameRules?.RawGameTime ?? 0
+
+		if (
+			(
+				(this.tracker.DisibleMin.value * 60) < gametime
+			) ||
+			(
+				!killedEntity.IsEnemy(attackerEntity) &&
+				!this.tracker.ShowAllyCreeps.value
+			) ||
+			(
+				!attackerEntity.IsMyHero &&
+				!attackerEntity.IsEnemy() &&
+				!this.tracker.ShowAllyHeroes.value
+			)
+		) {
+			return
+		}
+
+		this.Units.push({
+			lastCreepPos: killedEntity.Position.Clone(),
+			attackerEntity,
+			gameTime: GameRules?.RawGameTime ?? 0,
+		})
+	}
+
+	private detectorGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
+		if (!this.state(this.detector)) {
+			return
+		}
+
+		if (
+			!killedEntity.IsNeutral
+		) {
+			return
+		}
+
+		if (
+			!attackerEntity.IsMyHero &&
+			!attackerEntity.IsEnemy() &&
+			!this.detector.ShowAllyHeroes.value
+		) {
+			return
+		}
+
+		const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
+		const alliesGainedXp: Hero[] = [] 
+		
+		heroes.forEach((hero: Hero): void => {
+			if (
+				this.localHero!.Team === hero.Team &&
+				hero.Distance(killedEntity) <= 1500
+			) {
+				alliesGainedXp.push(hero)
+			}
+		})
+
+		if (alliesGainedXp.length === 0) {
+			return
+		}
+
+		const xpPerHero: number = this.getXpDiff(alliesGainedXp[0]!)
+
+		if (xpPerHero === 0) {
+			return
+		}
+
+		const heroesGainedXp: number = Math.floor(
+			(killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
+		)
+		const enemiesGainedXp: number = heroesGainedXp - alliesGainedXp.length
+
+		if (enemiesGainedXp <= 0) {
+			return
+		}
+
+		const particle: Particle = this.pSDK.DrawCircle(
+			`Circle_${new Date().getTime()}`, 
+			this.localHero!,
+			1500,
+			{
+				Color: Color.Red,
+				Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW 
+			},
+		)
+
+		this.Particles.push({ 
+			particle: particle,
+			gametime: GameRules?.RawGameTime ?? 0,
+			enemiesCount: enemiesGainedXp
+		})
+	}
+
+	private drawHeroesIcons(): void {
+		if (!this.state(this.tracker) || this.isPostGame) {
 			return
 		}
 
@@ -166,89 +236,62 @@ const bootstrap = new (class CWhoGotCreep {
 		})
 	}
 
-	private get IsPostGame(): boolean {
-		return ( 
-			GameRules === undefined || 
-			GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
-		)
-	}
-
-	private get LocalHero(): Nullable<Hero> {
-		return LocalPlayer?.Hero
-	}
-
-	private State(menu: BaseMenu): boolean {
-		return menu.State.value
-	}
-
-	private GetXpDiff(hero: Hero): number {
-		return hero.CurrentXP - this.AlliesXP.get(hero.Name)!
-	}
-
-	private ShouldAttackOutcome(eventName: string, obj: any): obj is AttackOutcome {
-		return (
-			eventName === "entity_killed" &&
-			typeof obj.entindex_killed === "number" &&
-			typeof obj.entindex_attacker === "number"
-		)
-	}
-
-	private DetectorGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
-		if (
-			!this.State(this.detector) ||
-			!killedEntity.IsNeutral ||
-			(
-				!attackerEntity.IsMyHero &&
-				!attackerEntity.IsEnemy() &&
-				!this.detector.ShowAllyHeroes.value
-			)
-		) {
+	private drawEnemiesCountOnHealthbar(): void {
+		if (!this.state(this.detector) || this.isPostGame) {
 			return
 		}
 
-		const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
-		const alliesGainedXp: Hero[] = [] 
-		
-		heroes.forEach((hero: Hero): void => {
-			if (
-				this.LocalHero!.Team === hero.Team &&
-				hero.Distance(killedEntity) <= 1500
-			) {
-				alliesGainedXp.push(hero)
+		this.Particles.forEach(particle => {
+			const w2s: Nullable<Vector2> = RendererSDK.WorldToScreen(
+				this.localHero?.VisualPosition!
+			)
+			if (w2s !== undefined) {
+				const pos = w2s.Add(new Vector2(0, -this.localHero?.HealthBarOffset!).DivideScalar(2))
+				RendererSDK.Text(particle.enemiesCount.toString(), pos, Color.Red)
+				console.log("TEXT RENDERED")
 			}
 		})
+	}
 
-		if (alliesGainedXp.length === 0) {
-			return
-		}
-
-		const xpPerHero: number = this.GetXpDiff(alliesGainedXp[0]!)
-		const heroesGainedXp: number = Math.floor(
-			(killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
-		)
-		const enemiesGainedXp: number = heroesGainedXp - alliesGainedXp.length
-
-		if (enemiesGainedXp <= 0) {
-			return
-		}
-
-		const date = new Date()
-		const particle: Particle = this.pSDK.DrawCircle(
-			`Circle_${new Date().getTime()}`, 
-			this.LocalHero!,
-			1500,
-			{
-				Color: Color.Red,
-				Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW 
-			},
-		)
-
-		this.Particles.push({ 
-			particle: particle,
-			destroyAt: new Date(
-				date.getTime() + 2000
-			)
+	private updateAlliesXP(): void {
+		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
+			if (hero.Team === LocalPlayer?.Hero?.Team) {
+				const currXp: Nullable<number> = this.AlliesXP.get(hero.Name)
+				
+				if (currXp !== hero.CurrentXP) {
+					this.AlliesXP.set(hero.Name, hero.CurrentXP)
+				}
+			}
 		})
+	}
+
+	private clearOldHeroesIcons(): void {
+		if (!this.state || this.isPostGame || !GameRules?.RawGameTime) {
+			return
+		}
+		if (!this.Units.length) {
+			return
+		}
+
+		const gameTime = this.Units[0].gameTime
+
+		if (gameTime + this.tracker.TimeToShow.value < GameRules?.RawGameTime) {
+			this.Units.shift()
+		}
+	}
+
+	private destroyOldParticles() {
+		const particle = this.Particles.at(0)
+		const gametime: Nullable<number> = GameRules?.RawGameTime
+
+		if (
+			gametime !== undefined &&
+			particle !== undefined &&
+			particle.gametime + 2 < gametime
+		) {
+			particle.particle.Destroy()
+			this.Particles.shift()
+		}
 	}
 })()
 
