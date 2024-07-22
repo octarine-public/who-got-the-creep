@@ -89,13 +89,13 @@ const bootstrap = new (class CWhoGotCreep {
 				}
 			})
 
-			if (
-				heroesGainedXp > alliesGainedXp &&
-				Math.floor(killedEntity.XPBounty / alliesGainedXp) === xpPerHero
-			) {
-				console.log(heroesGainedXp)
-				heroesGainedXp--
-			}
+			// if (
+				// heroesGainedXp > alliesGainedXp &&
+				// Math.floor(killedEntity.XPBounty / alliesGainedXp) === xpPerHero
+			// ) {
+				// console.log(heroesGainedXp)
+				// heroesGainedXp--
+			// }
 
 			console.log("heroes gained xp", heroesGainedXp)
 			console.log("allies gained xp", alliesGainedXp)
