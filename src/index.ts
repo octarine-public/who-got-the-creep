@@ -27,7 +27,9 @@ interface AttackOutcome {
 }
 
 const bootstrap = new (class CWhoGotCreep {
-	constructor() {}
+	constructor() {
+		this.menu.MenuChanged(() => {})
+	}
 
 	public units: {
 		lastCreepPos: Vector3
@@ -38,20 +40,14 @@ const bootstrap = new (class CWhoGotCreep {
 	public teammatesXP = new Map<string, number>()
 
 	private readonly menu = new MenuManager(new Sleeper())
-
-	public GetTeammatesXp(): void {
-		console.log(this.teammatesXP)
-	}
+	private readonly whoGotTheCreepMenu = this.menu.WhoGotTheCreep
+	private readonly xpESPMenu = this.menu.XpESP
 
 	public GameEvent(eventName: string, obj: any): void {
 		const gameTime = GameRules?.RawGameTime ?? 0
-		const whoGotTheCreepMenu: WhoGotTheCreepMenu = this.menu.WhoGotTheCreep
-		const xpESPMenu: XpESPMenu = this.menu.XpESP
-
-
 		if (
-			(!this.State(whoGotTheCreepMenu) && !this.State(xpESPMenu)) ||
-			gameTime > whoGotTheCreepMenu.disibleMin.value * 60
+			(!this.State(this.whoGotTheCreepMenu) && !this.State(this.xpESPMenu)) ||
+			gameTime > this.whoGotTheCreepMenu.disibleMin.value * 60
 		) {
 			return
 		}
@@ -71,8 +67,8 @@ const bootstrap = new (class CWhoGotCreep {
 			attackerEntity.IsHero
 		) {
 			if (
-				(!killedEntity.IsEnemy(attackerEntity) && !whoGotTheCreepMenu.showAllyCreeps.value) ||
-				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !whoGotTheCreepMenu.showAllyHeroes.value)
+				(!killedEntity.IsEnemy(attackerEntity) && !this.whoGotTheCreepMenu.showAllyCreeps.value) ||
+				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.whoGotTheCreepMenu.showAllyHeroes.value)
 			) {
 				return
 			}
@@ -111,21 +107,6 @@ const bootstrap = new (class CWhoGotCreep {
 
 			console.log("creep:", killedEntity.Name, "bounty", killedEntity.XPBounty, "extra bounty", killedEntity.XPBountyExtra)
 
-			heroes.filter((hero) => hero.IsAlive).forEach((hero: Hero): void => {
-				console.log(
-					"name:",
-					hero.Name,
-					"distance:",
-					killedEntity.Position.Distance(hero.Position),
-					"xp:",
-					hero.CurrentXP,
-					"old xp:",
-					this.teammatesXP.get(hero.Name),
-					"gain:",
-					hero.CurrentXP - this.teammatesXP.get(hero.Name)!
-				)
-			})
-
 			this.units.push({
 				lastCreepPos: killedEntity.Position.Clone(),
 				attackerEntity,
@@ -163,8 +144,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Draw(): void {
-		const targetMenu: WhoGotTheCreepMenu = this.menu.WhoGotTheCreep
-		if (!this.State(targetMenu) || this.IsPostGame) {
+		if (!this.State(this.whoGotTheCreepMenu) || this.IsPostGame) {
 			return
 		}
 
@@ -172,7 +152,7 @@ const bootstrap = new (class CWhoGotCreep {
 			const creepPos = unit.lastCreepPos
 			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
 			if (w2sPosition !== undefined) {
-				const size = GUIInfo.ScaleWidth(targetMenu.size.value)
+				const size = GUIInfo.ScaleWidth(this.whoGotTheCreepMenu.size.value)
 				const heroSize = new Vector2(size, size)
 				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
 				RendererSDK.Image(
@@ -180,7 +160,7 @@ const bootstrap = new (class CWhoGotCreep {
 					position,
 					-1,
 					heroSize,
-					Color.White.SetA(targetMenu.opactity.value * 2.55)
+					Color.White.SetA(this.whoGotTheCreepMenu.opactity.value * 2.55)
 				)
 
 				if (unit.enemiesAround !== 0) {
