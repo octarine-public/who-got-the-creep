@@ -96,7 +96,8 @@ const bootstrap = new (class CWhoGotCreep {
 			if ((heroesGainedXp - alliesGainedXp) > 0) {
 				RendererSDK.OutlinedCircle(
 					new Vector2(localHero.Position.x, localHero.Position.y),
-					new Vector2(1500, 1500)
+					new Vector2(1500, 1500),
+					Color.Red
 				)
 			}
 
