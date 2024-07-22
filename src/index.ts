@@ -174,7 +174,7 @@ const bootstrap = new (class CWhoGotCreep {
 				if (unit.enemiesAround !== 0) {
 					RendererSDK.OutlinedCircle(
 						position,
-						new Vector2(1000, 1000),
+						new Vector2(-500, 500),
 						Color.Red
 					)
 				}
