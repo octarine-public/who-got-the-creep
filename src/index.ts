@@ -172,7 +172,7 @@ const bootstrap = new (class CWhoGotCreep {
 				)
 
 				if (unit.enemiesAround !== 0) {
-					const circleSize = new Vector2(GUIInfo.ScaleWidth(1500), GUIInfo.ScaleWidth(1500)) 
+					const circleSize = new Vector2(GUIInfo.ScaleWidth(1800), GUIInfo.ScaleWidth(1800)) 
 					const circlePosition = w2sPosition.Subtract(circleSize.DivideScalar(2))
 
 					RendererSDK.OutlinedCircle(
