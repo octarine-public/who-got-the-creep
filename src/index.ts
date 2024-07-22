@@ -238,7 +238,7 @@ const bootstrap = new (class CWhoGotCreep {
 			this.LocalHero!,
 			1500,
 			{
-				Color: this.detector.Color.SelectedColor,
+				Color: Color.Red,
 				Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW 
 			},
 		)
