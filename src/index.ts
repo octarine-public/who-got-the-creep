@@ -80,12 +80,6 @@ const bootstrap = new (class CWhoGotCreep {
 			let alliesGainedXp: number = 0
 
 			EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
-				console.log(
-					hero.Team,killedEntity.Team,
-					hero.Name,
-					hero.CurrentXP,
-					this.teammatesXP.get(hero.Name)
-				)
 				if (
 					localHero.Team === hero.Team &&
 					hero.CurrentXP !== this.teammatesXP.get(hero.Name) &&
