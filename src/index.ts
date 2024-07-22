@@ -103,8 +103,6 @@ const bootstrap = new (class CWhoGotCreep {
 				
 			}
 
-			const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
-
 			console.log("creep:", killedEntity.Name, "bounty", killedEntity.XPBounty, "extra bounty", killedEntity.XPBountyExtra)
 
 			this.units.push({
