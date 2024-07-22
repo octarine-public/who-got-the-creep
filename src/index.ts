@@ -41,7 +41,8 @@ const bootstrap = new (class CWhoGotCreep {
 	public teammatesXP = new Map<string, number>()
 
 	private readonly pSDK = new ParticlesSDK()
-	private readonly menu = new MenuManager(new Sleeper())
+	private readonly sleeper = new Sleeper()
+	private readonly menu = new MenuManager(this.sleeper)
 	private readonly tracker: TrackerMenu = this.menu.Tracker
 	private readonly detector: DetectorMenu = this.menu.Detector
 
@@ -168,8 +169,11 @@ const bootstrap = new (class CWhoGotCreep {
 
 				if (unit.enemiesAround !== 0) {
 					const localHero: Hero = LocalPlayer?.Hero!
+					const key: string = `WarningCircle_${new Date().toISOString()}`
 
-					this.pSDK.DrawCircle("1", localHero, 1500, { Color: Color.Red })
+					this.pSDK.DrawCircle(key, localHero, 1500, { Color: Color.Red })
+					this.sleeper.Sleep(5000, new Date().toISOString())
+					this.pSDK.DestroyByKey(key)
 				}
 			}
 		})
