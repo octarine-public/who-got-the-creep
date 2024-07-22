@@ -170,15 +170,15 @@ const bootstrap = new (class CWhoGotCreep {
 					heroSize,
 					Color.White.SetA(this.menu.opactity.value * 2.55)
 				)
-			}
 
-			if (unit.enemiesAround !== 0) {
-				if (w2sPosition) {
-					RendererSDK.OutlinedCircle(
-						w2sPosition,
-						new Vector2(1500, 1500),
-						Color.Red
-					)	
+				if (unit.enemiesAround !== 0) {
+					if (w2sPosition) {
+						RendererSDK.OutlinedCircle(
+							w2sPosition,
+							new Vector2(1500, 1500),
+							Color.Red
+						)	
+					}
 				}
 			}
 		})
