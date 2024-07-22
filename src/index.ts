@@ -81,8 +81,8 @@ const bootstrap = new (class CWhoGotCreep {
 
 			EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 				if (
+					(hero.CurrentXP !== this.teammatesXP.get(hero.Name) || hero.Level === 30) &&
 					localHero.Team === hero.Team &&
-					hero.CurrentXP !== this.teammatesXP.get(hero.Name) &&
 					hero.Distance(killedEntity) <= 1500
 				) {
 					alliesGainedXp++
