@@ -10,7 +10,7 @@ export abstract class BaseMenu {
 	}
 
 	public MenuChanged(callback: () => void) {
-		// this.State.OnValue(() => callback())
+		this.State.OnValue(() => callback())
 	}
 
 	public ResetSettings(callback: () => void) {

@@ -5,7 +5,6 @@ import {
 	ResetSettingsUpdated,
 	Sleeper
 } from "github.com/octarine-public/wrapper/wrapper/Imports"
-import { BaseMenu } from "./base"
 import { WhoGotTheCreepMenu } from "./who-got-the-creep"
 import { XpESPMenu } from "./xp-esp"
 

@@ -10,7 +10,7 @@ export class WhoGotTheCreepMenu extends BaseMenu {
 	public readonly disibleMin: Menu.Slider
 
 	constructor(node: Menu.Node) {
-		super(node, "Who got the creep", true)
+		super(node, "Who got the creep", false)
 		this.showAllyCreeps = this.Tree.AddToggle("Show ally creeps", false)
 		this.showAllyHeroes = this.Tree.AddToggle("Show ally heroes", false)
 		this.size = this.Tree.AddSlider("Size", 30, 25, 50)
