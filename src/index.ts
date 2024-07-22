@@ -44,6 +44,8 @@ const bootstrap = new (class CWhoGotCreep {
 	private readonly xpESPMenu = this.menu.XpESP
 
 	public GameEvent(eventName: string, obj: any): void {
+		console.log("Game event processed")
+
 		const gameTime = GameRules?.RawGameTime ?? 0
 		if (
 			(!this.State(this.whoGotTheCreepMenu) && !this.State(this.xpESPMenu)) ||
