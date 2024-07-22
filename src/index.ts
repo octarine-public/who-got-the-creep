@@ -73,7 +73,10 @@ const bootstrap = new (class CWhoGotCreep {
 				// (killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
 			// )
 
-			console.log((killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero)
+			const heroesGainedXp: number = (killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero 
+
+			console.log("raw", heroesGainedXp)
+			console.log("flored", Math.floor(heroesGainedXp))
 
 			let alliesGainedXp: number = 0
 
