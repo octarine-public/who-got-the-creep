@@ -246,7 +246,7 @@ const bootstrap = new (class CWhoGotCreep {
 		this.Particles.push({ 
 			particle: particle,
 			destroyAt: new Date(
-				date.getTime() + this.menu.Detector.TimeToShow.value * 1000
+				date.getTime() + 2
 			)
 		})
 	}
