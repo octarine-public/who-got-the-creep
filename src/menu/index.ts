@@ -5,14 +5,14 @@ import {
 	ResetSettingsUpdated,
 	Sleeper
 } from "github.com/octarine-public/wrapper/wrapper/Imports"
-import { WhoGotTheCreepMenu } from "./who-got-the-creep"
-import { XpESPMenu } from "./xp-esp"
+import { TrackerMenu } from "./tracker"
+import { DetectorMenu } from "./detector"
 
 export class MenuManager {
 	public readonly State: Menu.Toggle
 
-	public readonly WhoGotTheCreep: WhoGotTheCreepMenu
-	public readonly XpESP: XpESPMenu
+	public readonly Tracker: TrackerMenu
+	public readonly Detector: DetectorMenu
 
 	private readonly tree: Menu.Node
 	private readonly reset: Menu.Button
@@ -23,15 +23,15 @@ export class MenuManager {
 		this.tree = this.baseNode.AddNode("Creep ESP", Paths.Icons.icon_svg_alien)
 		this.tree.SortNodes = false
 		this.State = this.tree.AddToggle("State", true)
-		this.WhoGotTheCreep = new WhoGotTheCreepMenu(this.tree)
-		this.XpESP = new XpESPMenu(this.tree)
+		this.Tracker = new TrackerMenu(this.tree)
+		this.Detector = new DetectorMenu(this.tree)
 		this.reset = this.tree.AddButton("Reset settings", "Reset settings to default")
 	}
 
 	public MenuChanged(callback: () => void) {
 		this.State.OnValue(() => callback)
-		this.WhoGotTheCreep.MenuChanged(callback)
-		this.XpESP.MenuChanged(callback)
+		this.Tracker.MenuChanged(callback)
+		this.Detector.MenuChanged(callback)
 		this.reset.OnValue(() => this.ResetSettings(callback))
 	}
 
@@ -40,8 +40,8 @@ export class MenuManager {
 			return
 		}
 		
-		this.WhoGotTheCreep.ResetSettings(callback)
-		this.XpESP.ResetSettings(callback)
+		this.Tracker.ResetSettings(callback)
+		this.Detector.ResetSettings(callback)
 		this.State.value = this.State.defaultValue
 		NotificationsSDK.Push(new ResetSettingsUpdated())
 		this.sleeper.Sleep(2 * 1000, "ResetSettings")

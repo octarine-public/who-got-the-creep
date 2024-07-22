@@ -1,7 +1,7 @@
 import { Menu } from "github.com/octarine-public/wrapper"
 import { BaseMenu } from "./base"
 
-export class WhoGotTheCreepMenu extends BaseMenu {
+export class TrackerMenu extends BaseMenu {
 	public readonly showAllyCreeps: Menu.Toggle
 	public readonly showAllyHeroes: Menu.Toggle
 	public readonly size: Menu.Slider
