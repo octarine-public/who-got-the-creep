@@ -100,12 +100,17 @@ const bootstrap = new (class CWhoGotCreep {
 			console.log("heroes gained xp", heroesGainedXp)
 			console.log("allies gained xp", alliesGainedXp)
 			console.log("enemies gained xp", )
-
-			if ((heroesGainedXp - alliesGainedXp) > 0) {
-				
-			}
-
+		
+	
+		
 			console.log("creep:", killedEntity.Name, "bounty", killedEntity.XPBounty, "extra bounty", killedEntity.XPBountyExtra)
+
+			EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
+				const prevXp: number = this.teammatesXP.get(hero.Name) ?? 0
+				const currXp: number = hero.CurrentXP
+
+				console.log("name:", hero.Name, "prev xp:", prevXp, "curr xp:", currXp, "xp diff:", currXp - prevXp)
+			})
 
 			this.units.push({
 				lastCreepPos: killedEntity.Position.Clone(),
