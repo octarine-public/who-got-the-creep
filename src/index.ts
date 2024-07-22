@@ -78,7 +78,7 @@ const bootstrap = new (class CWhoGotCreep {
 
 			EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 				console.log(
-					hero.Team === killedEntity.Team,
+					hero.Team,killedEntity.Team,
 					hero.Name,
 					hero.CurrentXP,
 					this.teammatesXP.get(hero.Name)
