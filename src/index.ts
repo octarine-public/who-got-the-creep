@@ -5,10 +5,14 @@ import {
 	DOTAGameState,
 	EntityManager,
 	EventsSDK,
+	FakeUnit,
+	Fountain,
 	GameRules,
+	GetPositionHeight,
 	GUIInfo,
 	Hero,
 	LocalPlayer,
+	MinimapSDK,
 	Particle,
 	ParticleAttachment,
 	ParticlesSDK,
@@ -45,6 +49,7 @@ const bootstrap = new (class CWhoGotCreep {
 		particle: Particle
 		enemiesCount: number
 		gametime: number
+		creepPos?: Vector3
 	}[] = []
 	public readonly AlliesXP = new Map<string, number>()
 
@@ -77,6 +82,8 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
+		console.log("creep death event, killer:", attackerEntity.Name, "distance", attackerEntity.Distance(this.localHero!))
+
 		this.trackerGameEvent(killedEntity, attackerEntity)
 		this.detectorGameEvent(killedEntity, attackerEntity)
 	}
@@ -90,6 +97,7 @@ const bootstrap = new (class CWhoGotCreep {
 		this.destroyOldParticles()
 		this.drawHeroesIcons()
 		this.drawEnemiesCountOnHealthbar()
+		this.drawDeadInvisibleCreepPos()
 	}
 
 	private get isPostGame(): boolean {
@@ -146,7 +154,7 @@ const bootstrap = new (class CWhoGotCreep {
 		this.Units.push({
 			lastCreepPos: killedEntity.Position.Clone(),
 			attackerEntity,
-			gameTime: GameRules?.RawGameTime ?? 0,
+			gameTime: GameRules?.RawGameTime!,
 		})
 	}
 
@@ -161,32 +169,31 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		if (
-			!attackerEntity.IsMyHero &&
-			!attackerEntity.IsEnemy() &&
-			!this.detector.ShowAllyHeroes.value
-		) {
-			return
-		}
-
 		const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
-		const alliesGainedXp: Hero[] = [] 
+		const alliesNear: Hero[] = [] 
 		
 		heroes.forEach((hero: Hero): void => {
 			if (
 				this.localHero!.Team === hero.Team &&
 				hero.Distance(killedEntity) <= 1500
 			) {
-				alliesGainedXp.push(hero)
+				alliesNear.push(hero)
 			}
 		})
+		
+		// console.log("allies who gained xp", alliesGainedXp)
 
-		if (alliesGainedXp.length === 0) {
+		if (alliesNear.length === 0) {
 			return
 		}
 
-		const xpPerHero: number = this.getXpDiff(alliesGainedXp[0]!)
+		const xpPerHero: number = alliesNear.map(
+			(hero: Hero) => this.getXpDiff(hero)
+		).filter((diff) => diff !== 0)[0] ?? 0
 
+		console.log("xp per hero", xpPerHero)
+
+		// xp per hero can be zero if every ally has 30 level
 		if (xpPerHero === 0) {
 			return
 		}
@@ -194,26 +201,49 @@ const bootstrap = new (class CWhoGotCreep {
 		const heroesGainedXp: number = Math.floor(
 			(killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
 		)
-		const enemiesGainedXp: number = heroesGainedXp - alliesGainedXp.length
+
+		// console.log("heroes gained xp", heroesGainedXp)
+
+		const enemiesGainedXp: number = heroesGainedXp - alliesNear.length
+
+		// console.log("enemies gained xp", enemiesGainedXp)
 
 		if (enemiesGainedXp <= 0) {
 			return
 		}
 
+		const visibleEnemies: number = EntityManager.GetEntitiesByClass(Hero)
+			.filter(
+				(hero: Hero): boolean => 
+					hero.IsEnemy() &&
+					hero.IsVisible && 
+					hero.Distance(killedEntity.Position) <= 1500
+			).length
+
+		// console.log("visible enemies", visibleEnemies)
+
+		if (visibleEnemies === enemiesGainedXp) {
+			return
+		}
+
+		// console.log("is killed creep visible", killedEntity.IsVisible)
+		// console.log("entity to set particle", killedEntity.IsVisible ? killedEntity : this.localHero!)
+
 		const particle: Particle = this.pSDK.DrawCircle(
 			`Circle_${new Date().getTime()}`, 
-			this.localHero!,
+			killedEntity,
 			1500,
 			{
 				Color: Color.Red,
-				Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW 
+				Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW,
 			},
 		)
 
 		this.Particles.push({ 
 			particle: particle,
-			gametime: GameRules?.RawGameTime ?? 0,
-			enemiesCount: enemiesGainedXp
+			gametime: GameRules?.RawGameTime!,
+			enemiesCount: enemiesGainedXp,
+			creepPos: killedEntity.IsVisible ? undefined : killedEntity.Position
 		})
 	}
 
@@ -233,6 +263,7 @@ const bootstrap = new (class CWhoGotCreep {
 				const size = GUIInfo.ScaleWidth(this.tracker.Size.value)
 				const heroSize = new Vector2(size, size)
 				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
+				
 				RendererSDK.Image(
 					`panorama/images/heroes/icons/${unit.attackerEntity.Name}_png.vtex_c`,
 					position,
@@ -254,11 +285,35 @@ const bootstrap = new (class CWhoGotCreep {
 				this.localHero?.VisualPosition!
 			)
 			if (w2s !== undefined) {
-				const pos = w2s.Add(new Vector2(0, -this.localHero?.HealthBarOffset!).DivideScalar(2))
-				RendererSDK.Text(particle.enemiesCount.toString(), pos, Color.Red)
+				RendererSDK.Text(
+					particle.enemiesCount.toString(),
+					this.getUpperCenterHealthbarPosition,
+					Color.Red
+				)
 			}
 		})
 	}
+
+	private drawDeadInvisibleCreepPos(): void {
+		if (!this.state(this.detector) || this.isPostGame) {
+			return
+		}
+
+		this.Particles.forEach(particle => {
+			const { creepPos } = particle 
+
+			if (creepPos) {
+				const w2s: Nullable<Vector2> = RendererSDK.WorldToScreen(
+					creepPos
+				)
+				if (w2s) {
+					const size = new Vector2(50, 50)
+					RendererSDK.OutlinedCircle(w2s, size, Color.Red)
+				}
+			}
+		})
+	}
+	
 
 	private updateAlliesXP(): void {
 		if (!this.menu.State.value) {
@@ -303,6 +358,23 @@ const bootstrap = new (class CWhoGotCreep {
 			particle.particle.Destroy()
 			this.Particles.shift()
 		}
+	}
+
+	private get getUpperCenterHealthbarPosition(): Vector2 {
+		let tossPos: Nullable<Vector3> = undefined
+		if (this.localHero!.HasBuffByName("modifier_tiny_toss")) {
+			tossPos = this.localHero!.Position
+				.Clone()
+				.SetZ(GetPositionHeight(this.localHero!.Position))
+		}
+		const hbSize: Vector2 = this.localHero!.HealthBarSize
+			.DivideScalarX(2)
+			.MultiplyScalarY(3)
+
+		return this.localHero!
+			.HealthBarPosition(true, tossPos)!
+			.AddScalarX(hbSize.x)
+			.SubtractScalarY(hbSize.y)
 	}
 })()
 
