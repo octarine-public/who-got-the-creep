@@ -17,7 +17,7 @@ import {
 	Unit,
 	Vector2,
 	Vector3
-} from "github.com/octarine-public/wrapper/wrapper/Imports"
+} from "github.com/octarine-public/wrapper/index"
 
 import { MenuManager } from "./menu/index"
 import { BaseMenu } from "./menu/base"
@@ -55,6 +55,10 @@ const bootstrap = new (class CWhoGotCreep {
 	private readonly detector: DetectorMenu = this.menu.Detector
 
 	public GameEvent(eventName: string, obj: any): void {
+		if (!this.menu.State.value) {
+			return
+		}
+		
 		if (!this.shouldAttackOutcome(eventName, obj)) {
 			return
 		}
@@ -214,7 +218,11 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	private drawHeroesIcons(): void {
-		if (!this.state(this.tracker) || this.isPostGame) {
+		if (
+			!this.menu.State.value ||
+			!this.state(this.tracker) ||
+			this.isPostGame
+		) {
 			return
 		}
 
@@ -248,12 +256,15 @@ const bootstrap = new (class CWhoGotCreep {
 			if (w2s !== undefined) {
 				const pos = w2s.Add(new Vector2(0, -this.localHero?.HealthBarOffset!).DivideScalar(2))
 				RendererSDK.Text(particle.enemiesCount.toString(), pos, Color.Red)
-				console.log("TEXT RENDERED")
 			}
 		})
 	}
 
 	private updateAlliesXP(): void {
+		if (!this.menu.State.value) {
+			return
+		}
+
 		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 			if (hero.Team === LocalPlayer?.Hero?.Team) {
 				const currXp: Nullable<number> = this.AlliesXP.get(hero.Name)
@@ -266,7 +277,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	private clearOldHeroesIcons(): void {
-		if (!this.state || this.isPostGame || !GameRules?.RawGameTime) {
+		if (this.isPostGame || !GameRules?.RawGameTime) {
 			return
 		}
 		if (!this.Units.length) {

@@ -9,11 +9,8 @@ export class DetectorMenu extends BaseMenu {
 		this.ShowAllyHeroes = this.Tree.AddToggle("Show ally creep", false)
 	}
 
-	public override ResetSettings(callback: () => void): void {
+	public ResetSettings(callback: () => void): void {
 		super.ResetSettings(callback)
-
 		this.ShowAllyHeroes.value = this.ShowAllyHeroes.defaultValue
-
-		callback()
 	}
 }
