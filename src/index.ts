@@ -1,42 +1,42 @@
 import "../translations"
 
 import {
-	Color,
 	DOTAGameState,
 	EntityManager,
 	EventsSDK,
-	FakeUnit,
-	Fountain,
 	GameRules,
-	GetPositionHeight,
-	GUIInfo,
 	Hero,
 	LocalPlayer,
-	MinimapSDK,
 	Particle,
 	ParticleAttachment,
 	ParticlesSDK,
-	RendererSDK,
 	Sleeper,
 	Unit,
-	Vector2,
 	Vector3
 } from "github.com/octarine-public/wrapper/index"
 
 import { MenuManager } from "./menu/index"
 import { BaseMenu } from "./menu/base"
-import { TrackerMenu } from "./menu/tracker"
-import { DetectorMenu } from "./menu/detector"
+import { DetectorGUI } from "./gui/detector"
+import { DestroyOldParticles } from "./gui/particles"
+import { TrackerGUI } from "./gui/tracker"
 
 interface AttackOutcome {
 	entindex_killed: number
 	entindex_attacker: number
 }
 
-interface CreepData {
+export interface CreepData {
 	lastCreepPos: Vector3
 	attackerEntity: Unit
 	gameTime: number
+}
+
+export interface ParticleData {
+	particle: Particle
+	enemiesCount: number
+	gametime: number
+	creepPos?: Vector3
 }
 
 const bootstrap = new (class CWhoGotCreep {
@@ -45,19 +45,14 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Units: CreepData[] = []
-	public Particles: { 
-		particle: Particle
-		enemiesCount: number
-		gametime: number
-		creepPos?: Vector3
-	}[] = []
+	public Particles: ParticleData[] = []
 	public readonly AlliesXP = new Map<string, number>()
 
 	private readonly pSDK = new ParticlesSDK()
 	private readonly sleeper = new Sleeper()
 	private readonly menu = new MenuManager(this.sleeper)
-	private readonly tracker: TrackerMenu = this.menu.Tracker
-	private readonly detector: DetectorMenu = this.menu.Detector
+	private readonly detectorGUI = new DetectorGUI(this.menu.Detector)
+	private readonly trackerGUI = new TrackerGUI(this.menu.Tracker)
 
 	public GameEvent(eventName: string, obj: any): void {
 		if (!this.menu.State.value) {
@@ -82,22 +77,31 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		console.log("creep death event, killer:", attackerEntity.Name, "distance", attackerEntity.Distance(this.localHero!))
-
 		this.trackerGameEvent(killedEntity, attackerEntity)
 		this.detectorGameEvent(killedEntity, attackerEntity)
 	}
 
 	public Tick() {
 		this.updateAlliesXP()
-		this.clearOldHeroesIcons()
 	}
 
 	public Draw(): void {
-		this.destroyOldParticles()
-		this.drawHeroesIcons()
-		this.drawEnemiesCountOnHealthbar()
-		this.drawDeadInvisibleCreepPos()
+		DestroyOldParticles(this.Particles, GameRules?.RawGameTime!)
+
+		if (!this.menu.State.value) {
+			return
+		}
+
+		this.detectorGUI.Draw({
+			particles: this.Particles,
+			localHero: this.localHero!,
+			isPostGame: this.isPostGame,
+		})
+		this.trackerGUI.Draw({
+			units: this.Units,
+			isPostGame: this.isPostGame,
+			gametime: GameRules?.RawGameTime!
+		})
 	}
 
 	private get isPostGame(): boolean {
@@ -128,7 +132,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	private trackerGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
-		if (!this.state(this.tracker)) {
+		if (!this.state(this.menu.Tracker)) {
 			return
 		}
 
@@ -136,16 +140,16 @@ const bootstrap = new (class CWhoGotCreep {
 
 		if (
 			(
-				(this.tracker.DisibleMin.value * 60) < gametime
+				(this.menu.Tracker.DisibleMin.value * 60) < gametime
 			) ||
 			(
 				!killedEntity.IsEnemy(attackerEntity) &&
-				!this.tracker.ShowAllyCreeps.value
+				!this.menu.Tracker.ShowAllyCreeps.value
 			) ||
 			(
 				!attackerEntity.IsMyHero &&
 				!attackerEntity.IsEnemy() &&
-				!this.tracker.ShowAllyHeroes.value
+				!this.menu.Tracker.ShowAllyHeroes.value
 			)
 		) {
 			return
@@ -159,7 +163,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	private detectorGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
-		if (!this.state(this.detector)) {
+		if (!this.state(this.menu.Detector)) {
 			return
 		}
 
@@ -234,7 +238,7 @@ const bootstrap = new (class CWhoGotCreep {
 			killedEntity,
 			1500,
 			{
-				Color: Color.Red,
+				Color: this.menu.Detector.EnemyWarningColor.SelectedColor,
 				Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW,
 			},
 		)
@@ -246,74 +250,6 @@ const bootstrap = new (class CWhoGotCreep {
 			creepPos: killedEntity.IsVisible ? undefined : killedEntity.Position
 		})
 	}
-
-	private drawHeroesIcons(): void {
-		if (
-			!this.menu.State.value ||
-			!this.state(this.tracker) ||
-			this.isPostGame
-		) {
-			return
-		}
-
-		this.Units.forEach(unit => {
-			const creepPos = unit.lastCreepPos
-			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
-			if (w2sPosition !== undefined) {
-				const size = GUIInfo.ScaleWidth(this.tracker.Size.value)
-				const heroSize = new Vector2(size, size)
-				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
-				
-				RendererSDK.Image(
-					`panorama/images/heroes/icons/${unit.attackerEntity.Name}_png.vtex_c`,
-					position,
-					-1,
-					heroSize,
-					Color.White.SetA(this.tracker.Opactity.value * 2.55)
-				)
-			}
-		})
-	}
-
-	private drawEnemiesCountOnHealthbar(): void {
-		if (!this.state(this.detector) || this.isPostGame) {
-			return
-		}
-
-		this.Particles.forEach(particle => {
-			const w2s: Nullable<Vector2> = RendererSDK.WorldToScreen(
-				this.localHero?.VisualPosition!
-			)
-			if (w2s !== undefined) {
-				RendererSDK.Text(
-					particle.enemiesCount.toString(),
-					this.getUpperCenterHealthbarPosition,
-					Color.Red
-				)
-			}
-		})
-	}
-
-	private drawDeadInvisibleCreepPos(): void {
-		if (!this.state(this.detector) || this.isPostGame) {
-			return
-		}
-
-		this.Particles.forEach(particle => {
-			const { creepPos } = particle 
-
-			if (creepPos) {
-				const w2s: Nullable<Vector2> = RendererSDK.WorldToScreen(
-					creepPos
-				)
-				if (w2s) {
-					const size = new Vector2(50, 50)
-					RendererSDK.OutlinedCircle(w2s, size, Color.Red)
-				}
-			}
-		})
-	}
-	
 
 	private updateAlliesXP(): void {
 		if (!this.menu.State.value) {
@@ -329,52 +265,6 @@ const bootstrap = new (class CWhoGotCreep {
 				}
 			}
 		})
-	}
-
-	private clearOldHeroesIcons(): void {
-		if (this.isPostGame || !GameRules?.RawGameTime) {
-			return
-		}
-		if (!this.Units.length) {
-			return
-		}
-
-		const gameTime = this.Units[0].gameTime
-
-		if (gameTime + this.tracker.TimeToShow.value < GameRules?.RawGameTime) {
-			this.Units.shift()
-		}
-	}
-
-	private destroyOldParticles() {
-		const particle = this.Particles.at(0)
-		const gametime: Nullable<number> = GameRules?.RawGameTime
-
-		if (
-			gametime !== undefined &&
-			particle !== undefined &&
-			particle.gametime + 2 < gametime
-		) {
-			particle.particle.Destroy()
-			this.Particles.shift()
-		}
-	}
-
-	private get getUpperCenterHealthbarPosition(): Vector2 {
-		let tossPos: Nullable<Vector3> = undefined
-		if (this.localHero!.HasBuffByName("modifier_tiny_toss")) {
-			tossPos = this.localHero!.Position
-				.Clone()
-				.SetZ(GetPositionHeight(this.localHero!.Position))
-		}
-		const hbSize: Vector2 = this.localHero!.HealthBarSize
-			.DivideScalarX(2)
-			.MultiplyScalarY(3)
-
-		return this.localHero!
-			.HealthBarPosition(true, tossPos)!
-			.AddScalarX(hbSize.x)
-			.SubtractScalarY(hbSize.y)
 	}
 })()
 
