@@ -4,7 +4,7 @@ import {
 	NotificationsSDK,
 	ResetSettingsUpdated,
 	Sleeper
-} from "github.com/octarine-public/wrapper/wrapper/Imports"
+} from "github.com/octarine-public/wrapper/index"
 import { TrackerMenu } from "./tracker"
 import { DetectorMenu } from "./detector"
 

@@ -1,4 +1,4 @@
-import { Menu } from "github.com/octarine-public/wrapper"
+import { Menu } from "github.com/octarine-public/wrapper/index"
 import { BaseMenu } from "./base"
 
 export class TrackerMenu extends BaseMenu {
