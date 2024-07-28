@@ -86,6 +86,8 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Draw(): void {
+		console.log("detector menu state", this.menu.Detector.State.value)
+
 		DestroyOldParticles(this.Particles, GameRules?.RawGameTime!)
 
 		if (!this.menu.State.value) {
