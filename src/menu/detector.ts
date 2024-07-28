@@ -22,5 +22,10 @@ export class DetectorMenu extends BaseMenu {
 
 	public ResetSettings(callback: () => void): void {
 		super.ResetSettings(callback)
+
+		this.State.value = this.State.defaultValue
+		this.EnemyWarningColor.SelectedColor.CopyFrom(this.EnemyWarningColor.defaultColor)
+		this.KilledCreepColor.SelectedColor.CopyFrom(this.KilledCreepColor.defaultColor)
+		callback()
 	}
 }
