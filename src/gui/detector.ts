@@ -15,11 +15,7 @@ export class DetectorGUI extends BaseGUI<DrawParams, DetectorMenu> {
 	}
 
 	public Draw(params: DrawParams): void {
-		console.log("in detector gui")
-
 		if (!super.State(this.menu) || params.isPostGame) {
-			console.log(this.menu.State, params.isPostGame)
-			console.log("invalid detector menu state or post game")
 			return
 		}
 
