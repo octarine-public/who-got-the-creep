@@ -86,6 +86,8 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Draw(): void {
+		console.log("is post game", this.isPostGame)
+
 		DestroyOldParticles(this.Particles, GameRules?.RawGameTime!)
 
 		if (!this.menu.State.value) {
