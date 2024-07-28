@@ -115,6 +115,8 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	private trackerGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
+		console.log("creep is killed for tracker")
+
 		if (!this.state(this.menu.Tracker)) {
 			return
 		}
