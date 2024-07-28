@@ -20,6 +20,8 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 			return
 		}
 
+		console.log("everything is ok")
+
 		this.drawHeroesIcons(params.units)
 		this.destroyOldHeroesIcons(params.units, params.gametime)
 	}
