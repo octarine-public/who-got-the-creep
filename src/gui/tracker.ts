@@ -16,6 +16,7 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 
 	public Draw(params: DrawParams): void {
 		if (!super.State(this.menu) || params.isPostGame) {
+			console.log(this.menu)
 			return
 		}
 
