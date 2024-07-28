@@ -15,11 +15,8 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 
 	public Draw(params: DrawParams): void {
 		if (!super.State(this.menu) || params.isPostGame) {
-			console.log("invalid tracker gui state")
 			return
 		}
-
-		console.log("units in storage", Storage.Units.length)
 
 		this.drawHeroesIcons()
 		this.destroyOldHeroesIcons(params.gametime)

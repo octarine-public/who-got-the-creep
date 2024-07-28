@@ -73,7 +73,6 @@ const bootstrap = new (class CWhoGotCreep {
 		DestroyOldParticles(Storage.Particles, GameRules?.RawGameTime!)
 
 		if (!this.menu.State.value) {
-			console.log("invalid general menu state")
 			return
 		}
 
@@ -115,8 +114,6 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	private trackerGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
-		console.log("creep is killed for tracker")
-
 		if (!this.state(this.menu.Tracker)) {
 			return
 		}
@@ -145,7 +142,6 @@ const bootstrap = new (class CWhoGotCreep {
 			attackerEntity,
 			gameTime: GameRules?.RawGameTime!,
 		})
-		console.log("new units length", a)
 	}
 
 	private detectorGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
@@ -180,8 +176,6 @@ const bootstrap = new (class CWhoGotCreep {
 		const xpPerHero: number = alliesNear.map(
 			(hero: Hero) => this.getXpDiff(hero)
 		).filter((diff) => diff !== 0)[0] ?? 0
-
-		console.log("xp per hero", xpPerHero)
 
 		// xp per hero can be zero if every ally has 30 level
 		if (xpPerHero === 0) {
