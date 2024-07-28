@@ -140,11 +140,12 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		Storage.Units.push({
+		const a = Storage.Units.push({
 			lastCreepPos: killedEntity.Position.Clone(),
 			attackerEntity,
 			gameTime: GameRules?.RawGameTime!,
 		})
+		console.log("new units length", a)
 	}
 
 	private detectorGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
