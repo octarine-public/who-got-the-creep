@@ -12,7 +12,6 @@ import {
 	ParticlesSDK,
 	Sleeper,
 	Unit,
-	Vector3
 } from "github.com/octarine-public/wrapper/index"
 
 import { MenuManager } from "./menu/index"
@@ -20,33 +19,18 @@ import { BaseMenu } from "./menu/base"
 import { DetectorGUI } from "./gui/detector"
 import { DestroyOldParticles } from "./gui/particles"
 import { TrackerGUI } from "./gui/tracker"
+import { Storage } from "./storage/storage"
 
 interface AttackOutcome {
 	entindex_killed: number
 	entindex_attacker: number
 }
 
-export interface CreepData {
-	lastCreepPos: Vector3
-	attackerEntity: Unit
-	gameTime: number
-}
-
-export interface ParticleData {
-	particle: Particle
-	enemiesCount: number
-	gametime: number
-	creepPos?: Vector3
-}
 
 const bootstrap = new (class CWhoGotCreep {
 	constructor() {
 		this.menu.MenuChanged(() => {})
 	}
-
-	public Units: CreepData[] = []
-	public Particles: ParticleData[] = []
-	public readonly AlliesXP = new Map<string, number>()
 
 	private readonly pSDK = new ParticlesSDK()
 	private readonly sleeper = new Sleeper()
@@ -86,19 +70,17 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	public Draw(): void {
-		DestroyOldParticles(this.Particles, GameRules?.RawGameTime!)
+		DestroyOldParticles(Storage.Particles, GameRules?.RawGameTime!)
 
 		if (!this.menu.State.value) {
 			return
 		}
 
 		this.detectorGUI.Draw({
-			particles: this.Particles,
 			localHero: this.localHero!,
 			isPostGame: this.isPostGame,
 		})
 		this.trackerGUI.Draw({
-			units: this.Units,
 			isPostGame: this.isPostGame,
 			gametime: GameRules?.RawGameTime!
 		})
@@ -120,7 +102,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	private getXpDiff(hero: Hero): number {
-		return hero.CurrentXP - this.AlliesXP.get(hero.Name)!
+		return hero.CurrentXP - Storage.AlliesXP.get(hero.Name)!
 	}
 
 	private shouldAttackOutcome(eventName: string, obj: any): obj is AttackOutcome {
@@ -155,7 +137,7 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		this.Units.push({
+		Storage.Units.push({
 			lastCreepPos: killedEntity.Position.Clone(),
 			attackerEntity,
 			gameTime: GameRules?.RawGameTime!,
@@ -243,7 +225,7 @@ const bootstrap = new (class CWhoGotCreep {
 			},
 		)
 
-		this.Particles.push({ 
+		Storage.Particles.push({ 
 			particle: particle,
 			gametime: GameRules?.RawGameTime!,
 			enemiesCount: enemiesGainedXp,
@@ -258,10 +240,10 @@ const bootstrap = new (class CWhoGotCreep {
 
 		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 			if (hero.Team === LocalPlayer?.Hero?.Team) {
-				const currXp: Nullable<number> = this.AlliesXP.get(hero.Name)
+				const currXp: Nullable<number> = Storage.AlliesXP.get(hero.Name)
 				
 				if (currXp !== hero.CurrentXP) {
-					this.AlliesXP.set(hero.Name, hero.CurrentXP)
+					Storage.AlliesXP.set(hero.Name, hero.CurrentXP)
 				}
 			}
 		})
@@ -275,7 +257,5 @@ EventsSDK.on("Tick", () => bootstrap.Tick())
 EventsSDK.on("GameEvent", (eventName: string, obj: any) => bootstrap.GameEvent(eventName, obj))
 
 EventsSDK.on("GameEnded", () => {
-	bootstrap.Units = []
-	bootstrap.Particles = []
-	bootstrap.AlliesXP.clear()
+	Storage.Clear()
 })

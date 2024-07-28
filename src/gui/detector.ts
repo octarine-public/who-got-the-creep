@@ -1,10 +1,9 @@
 import { GetPositionHeight, Hero, RendererSDK, Vector2, Vector3 } from "github.com/octarine-public/wrapper/index"
-import { ParticleData } from "../"
 import { DetectorMenu } from "../menu/detector"
 import { BaseGUI } from "./base"
+import { Storage } from "../storage/storage"
 
 interface DrawParams {
-	particles: ParticleData[]
 	localHero: Hero
 	isPostGame: boolean
 }
@@ -20,19 +19,15 @@ export class DetectorGUI extends BaseGUI<DrawParams, DetectorMenu> {
 		}
 
 		this.drawEnemiesCountOnHealthbar(
-			params.particles,
 			params.localHero,
 		)
-		this.drawDeadInvisibleCreepPos(
-			params.particles,
-		)
+		this.drawDeadInvisibleCreepPos()
 	}
 
 	private drawEnemiesCountOnHealthbar(
-		particles: ParticleData[],
 		localHero: Hero,
 	): void {
-		particles.forEach(particle => {
+		Storage.Particles.forEach(particle => {
 			const w2s: Nullable<Vector2> = RendererSDK.WorldToScreen(
 				localHero.VisualPosition
 			)
@@ -46,10 +41,8 @@ export class DetectorGUI extends BaseGUI<DrawParams, DetectorMenu> {
 		})
 	}
 
-	private drawDeadInvisibleCreepPos(
-		particles: ParticleData[],
-	): void {
-		particles.forEach(particle => {
+	private drawDeadInvisibleCreepPos(): void {
+		Storage.Particles.forEach(particle => {
 			const { creepPos } = particle 
 
 			if (creepPos) {

@@ -1,10 +1,9 @@
-import { Color, GUIInfo, RendererSDK, Vector2 } from "github.com/octarine-public/wrapper/index"
-import { CreepData } from ".."
+import { Color, GUIInfo, RendererSDK, Unit, Vector2, Vector3 } from "github.com/octarine-public/wrapper/index"
 import { TrackerMenu } from "../menu/tracker"
 import { BaseGUI } from "./base"
+import { Storage } from "../storage/storage"
 
 interface DrawParams {
-	units: CreepData[]
 	isPostGame: boolean
 	gametime: number
 }
@@ -20,14 +19,12 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 			return
 		}
 
-		console.log("everything is ok")
-
-		this.drawHeroesIcons(params.units)
-		this.destroyOldHeroesIcons(params.units, params.gametime)
+		this.drawHeroesIcons()
+		this.destroyOldHeroesIcons(params.gametime)
 	}
 
-	private drawHeroesIcons(units: CreepData[]): void {
-		units.forEach(unit => {
+	private drawHeroesIcons(): void {
+		Storage.Units.forEach(unit => {
 			const creepPos = unit.lastCreepPos
 			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
 			if (w2sPosition !== undefined) {
@@ -46,15 +43,15 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 		})
 	}
 
-	private destroyOldHeroesIcons(units: CreepData[], gametime: number): void {
-		if (!units.length) {
+	private destroyOldHeroesIcons(gametime: number): void {
+		if (!Storage.Units.length) {
 			return
 		}
 
-		const gameTime = units[0].gameTime
+		const gameTime = Storage.Units[0].gameTime
 
 		if ((gameTime + this.menu.TimeToShow.value) < gameTime) {
-			units.shift()
+			Storage.Units.shift()
 		}
 	}
 }
