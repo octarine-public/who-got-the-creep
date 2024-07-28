@@ -1,4 +1,4 @@
-import { Color, GUIInfo, RendererSDK, Unit, Vector2, Vector3 } from "github.com/octarine-public/wrapper/index"
+import { Color, GUIInfo, RendererSDK, Vector2 } from "github.com/octarine-public/wrapper/index"
 import { TrackerMenu } from "../menu/tracker"
 import { BaseGUI } from "./base"
 import { Storage } from "../storage/storage"
@@ -15,7 +15,6 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 
 	public Draw(params: DrawParams): void {
 		if (!super.State(this.menu) || params.isPostGame) {
-			console.log(this.menu, this.menu.State.value, super.State(this.menu), params)
 			return
 		}
 
@@ -48,9 +47,9 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 			return
 		}
 
-		const gameTime = Storage.Units[0].gameTime
+		const unitCreated = Storage.Units[0].gameTime
 
-		if ((gameTime + this.menu.TimeToShow.value) < gameTime) {
+		if ((unitCreated + this.menu.TimeToShow.value) < gametime) {
 			Storage.Units.shift()
 		}
 	}

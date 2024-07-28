@@ -13,7 +13,6 @@ export interface ParticleData {
 	creepPos?: Vector3
 }
 
-
 export class Storage {
 	public static readonly Units: CreepData[] = []
 	public static readonly Particles: ParticleData[] = []

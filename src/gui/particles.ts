@@ -1,4 +1,4 @@
-import { ParticleData } from "../"
+import { ParticleData } from "../storage/storage"
 
 export function DestroyOldParticles(
 	particles: ParticleData[],
