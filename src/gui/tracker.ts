@@ -16,7 +16,6 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 
 	public Draw(params: DrawParams): void {
 		if (!super.State(this.menu) || params.isPostGame) {
-			console.log("post game")
 			return
 		}
 
@@ -46,14 +45,12 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 
 	private destroyOldHeroesIcons(units: CreepData[], gametime: number): void {
 		if (!units.length) {
-			console.log("empty units array to destroy")
 			return
 		}
 
 		const gameTime = units[0].gameTime
 
 		if ((gameTime + this.menu.TimeToShow.value) < gameTime) {
-			console.log("unit removed")
 			units.shift()
 		}
 	}
