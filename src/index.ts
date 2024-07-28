@@ -73,6 +73,7 @@ const bootstrap = new (class CWhoGotCreep {
 		DestroyOldParticles(Storage.Particles, GameRules?.RawGameTime!)
 
 		if (!this.menu.State.value) {
+			console.log("invalid general menu state")
 			return
 		}
 
