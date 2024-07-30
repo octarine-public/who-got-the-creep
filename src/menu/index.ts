@@ -4,55 +4,45 @@ import {
 	NotificationsSDK,
 	ResetSettingsUpdated,
 	Sleeper
-} from "github.com/octarine-public/wrapper/wrapper/Imports"
+} from "github.com/octarine-public/wrapper/index"
+import { TrackerMenu } from "./tracker"
+import { DetectorMenu } from "./detector"
 
 export class MenuManager {
 	public readonly State: Menu.Toggle
-	public readonly showAllyCreeps: Menu.Toggle
-	public readonly showAllyHeroes: Menu.Toggle
-	public readonly size: Menu.Slider
-	public readonly timeToShow: Menu.Slider
-	public readonly opactity: Menu.Slider
-	public readonly disibleMin: Menu.Slider
 
+	public readonly Tracker: TrackerMenu
+	public readonly Detector: DetectorMenu
+
+	private readonly tree: Menu.Node
 	private readonly reset: Menu.Button
+	private readonly baseNode: Menu.Node = Menu.AddEntry("Visual")
 
-	private readonly visual = Menu.AddEntry("Visual")
-	private readonly baseNode: Menu.Node
-	private readonly sleeper = new Sleeper()
 
-	private readonly nodeImage = Paths.Icons.icon_svg_alien
-
-	constructor() {
-		this.baseNode = this.visual.AddNode("Who Last Hit", this.nodeImage, "Shows who last hit the creep", -1)
-		this.baseNode.SortNodes = false
-
-		this.State = this.baseNode.AddToggle("State", true)
-		this.showAllyCreeps = this.baseNode.AddToggle("Show ally creeps", false)
-		this.showAllyHeroes = this.baseNode.AddToggle("Show ally heroes", false)
-		this.size = this.baseNode.AddSlider("Size", 30, 25, 50)
-		this.timeToShow = this.baseNode.AddSlider("Time to show seconds", 2, 1, 5)
-		this.opactity = this.baseNode.AddSlider("Opacity", 85, 40, 100)
-		this.disibleMin = this.baseNode.AddSlider("Disable after N minutes", 15, 5, 60)
-		this.reset = this.baseNode.AddButton("Reset", "Reset settings to default values")
-		this.reset.OnValue(() => this.ResetSettings())
+	constructor(private readonly sleeper: Sleeper) {
+		this.tree = this.baseNode.AddNode("Creep ESP", Paths.Icons.icon_svg_alien)
+		this.tree.SortNodes = false
+		this.State = this.tree.AddToggle("State", true)
+		this.Tracker = new TrackerMenu(this.tree)
+		this.Detector = new DetectorMenu(this.tree)
+		this.reset = this.tree.AddButton("Reset settings", "Reset settings to default")
 	}
 
 	public MenuChanged(callback: () => void) {
-		this.reset.OnValue(() => callback())
+		this.State.OnValue(() => callback)
+		this.Tracker.MenuChanged(callback)
+		this.Detector.MenuChanged(callback)
+		this.reset.OnValue(() => this.ResetSettings(callback))
 	}
 
-	public ResetSettings() {
+	public ResetSettings(callback: () => void) {
 		if (this.sleeper.Sleeping("ResetSettings")) {
 			return
 		}
+		
+		this.Tracker.ResetSettings(callback)
+		this.Detector.ResetSettings(callback)
 		this.State.value = this.State.defaultValue
-		this.showAllyCreeps.value = this.showAllyCreeps.defaultValue
-		this.showAllyHeroes.value = this.showAllyHeroes.defaultValue
-		this.size.value = this.size.defaultValue
-		this.timeToShow.value = this.timeToShow.defaultValue
-		this.opactity.value = this.opactity.defaultValue
-		this.disibleMin.value = this.disibleMin.defaultValue
 		NotificationsSDK.Push(new ResetSettingsUpdated())
 		this.sleeper.Sleep(2 * 1000, "ResetSettings")
 	}

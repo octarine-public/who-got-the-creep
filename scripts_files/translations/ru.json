@@ -4,5 +4,11 @@
 	"Shows who last hit the creep": "Показывает кто добил крипа",
 	"Time to show seconds": "Время показа в секундах",
 	"Show ally creeps": "Показывать союзных крипов",
-	"Show ally heroes": "Показывать союзных героев"
+	"Show ally heroes": "Показывать союзных героев",
+	"Who got the creep": "Кто добил крипа",
+	"Shows last hitted neutrals by enemy, detects enemis around if you last hit neutrals": "Показывает добитых врагом нейтралов, детектит врагов рядом если ты бьешь лес",
+	"Enemy warning": "Враги рядом",
+	"Radius with enemies inside": "Цвет радиуса с противниками внутри",
+	"Last hitted neutral": "Добитый нейтрал",
+	"Radius where neutral were last hitted": "Цвет радиуса в котором был добит нейтрал"
 }
