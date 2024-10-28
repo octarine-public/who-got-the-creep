@@ -11,14 +11,14 @@ import {
 	ParticleAttachment,
 	ParticlesSDK,
 	Sleeper,
-	Unit,
+	Unit
 } from "github.com/octarine-public/wrapper/index"
 
-import { MenuManager } from "./menu/index"
-import { BaseMenu } from "./menu/base"
 import { DetectorGUI } from "./gui/detector"
 import { DestroyOldParticles } from "./gui/particles"
 import { TrackerGUI } from "./gui/tracker"
+import { BaseMenu } from "./menu/base"
+import { MenuManager } from "./menu/index"
 import { Storage } from "./storage/storage"
 
 interface AttackOutcome {
@@ -26,11 +26,10 @@ interface AttackOutcome {
 	entindex_attacker: number
 }
 
-
 const bootstrap = new (class CWhoGotCreep {
-	constructor() {
-		this.menu.MenuChanged(() => {})
-	}
+	// constructor() {
+	// 	this.menu.MenuChanged(() => {})
+	// }
 
 	private readonly pSDK = new ParticlesSDK()
 	private readonly sleeper = new Sleeper()
@@ -42,7 +41,7 @@ const bootstrap = new (class CWhoGotCreep {
 		if (!this.menu.State.value) {
 			return
 		}
-		
+
 		if (!this.shouldAttackOutcome(eventName, obj)) {
 			return
 		}
@@ -72,13 +71,13 @@ const bootstrap = new (class CWhoGotCreep {
 	public Draw(): void {
 		DestroyOldParticles(Storage.Particles, GameRules?.RawGameTime!)
 
-		if (!this.menu.State.value) {
+		if (!this.menu.State.value || this.localHero === undefined) {
 			return
 		}
 
 		this.detectorGUI.Draw({
-			localHero: this.localHero!,
-			isPostGame: this.isPostGame,
+			localHero: this.localHero,
+			isPostGame: this.isPostGame
 		})
 		this.trackerGUI.Draw({
 			isPostGame: this.isPostGame,
@@ -87,10 +86,7 @@ const bootstrap = new (class CWhoGotCreep {
 	}
 
 	private get isPostGame(): boolean {
-		return ( 
-			GameRules === undefined || 
-			GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
-		)
+		return GameRules === undefined || GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
 	}
 
 	private get localHero(): Nullable<Hero> {
@@ -121,18 +117,9 @@ const bootstrap = new (class CWhoGotCreep {
 		const gametime: number = GameRules?.RawGameTime ?? 0
 
 		if (
-			(
-				(this.menu.Tracker.DisibleMin.value * 60) < gametime
-			) ||
-			(
-				!killedEntity.IsEnemy(attackerEntity) &&
-				!this.menu.Tracker.ShowAllyCreeps.value
-			) ||
-			(
-				!attackerEntity.IsMyHero &&
-				!attackerEntity.IsEnemy() &&
-				!this.menu.Tracker.ShowAllyHeroes.value
-			)
+			this.menu.Tracker.DisibleMin.value * 60 < gametime ||
+			(!killedEntity.IsEnemy(attackerEntity) && !this.menu.Tracker.ShowAllyCreeps.value) ||
+			(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.Tracker.ShowAllyHeroes.value)
 		) {
 			return
 		}
@@ -140,7 +127,7 @@ const bootstrap = new (class CWhoGotCreep {
 		const a = Storage.Units.push({
 			lastCreepPos: killedEntity.Position.Clone(),
 			attackerEntity,
-			gameTime: GameRules?.RawGameTime!,
+			gameTime: GameRules?.RawGameTime!
 		})
 	}
 
@@ -149,42 +136,33 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		if (
-			!killedEntity.IsNeutral
-		) {
+		if (!killedEntity.IsNeutral) {
 			return
 		}
 
 		const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
-		const alliesNear: Hero[] = [] 
-		
+		const alliesNear: Hero[] = []
+
 		heroes.forEach((hero: Hero): void => {
-			if (
-				this.localHero!.Team === hero.Team &&
-				hero.Distance(killedEntity) <= 1500
-			) {
+			if (this.localHero!.Team === hero.Team && hero.Distance(killedEntity) <= 1500) {
 				alliesNear.push(hero)
 			}
 		})
-		
+
 		// console.log("allies who gained xp", alliesGainedXp)
 
 		if (alliesNear.length === 0) {
 			return
 		}
 
-		const xpPerHero: number = alliesNear.map(
-			(hero: Hero) => this.getXpDiff(hero)
-		).filter((diff) => diff !== 0)[0] ?? 0
+		const xpPerHero: number = alliesNear.map((hero: Hero) => this.getXpDiff(hero)).filter(diff => diff !== 0)[0] ?? 0
 
 		// xp per hero can be zero if every ally has 30 level
 		if (xpPerHero === 0) {
 			return
 		}
 
-		const heroesGainedXp: number = Math.floor(
-			(killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero
-		)
+		const heroesGainedXp: number = Math.floor((killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero)
 
 		// console.log("heroes gained xp", heroesGainedXp)
 
@@ -196,13 +174,9 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		const visibleEnemies: number = EntityManager.GetEntitiesByClass(Hero)
-			.filter(
-				(hero: Hero): boolean => 
-					hero.IsEnemy() &&
-					hero.IsVisible && 
-					hero.Distance(killedEntity.Position) <= 1500
-			).length
+		const visibleEnemies: number = EntityManager.GetEntitiesByClass(Hero).filter(
+			(hero: Hero): boolean => hero.IsEnemy() && hero.IsVisible && hero.Distance(killedEntity.Position) <= 1500
+		).length
 
 		// console.log("visible enemies", visibleEnemies)
 
@@ -213,18 +187,13 @@ const bootstrap = new (class CWhoGotCreep {
 		// console.log("is killed creep visible", killedEntity.IsVisible)
 		// console.log("entity to set particle", killedEntity.IsVisible ? killedEntity : this.localHero!)
 
-		const particle: Particle = this.pSDK.DrawCircle(
-			`Circle_${new Date().getTime()}`, 
-			killedEntity,
-			1500,
-			{
-				Color: this.menu.Detector.EnemyWarningColor.SelectedColor,
-				Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW,
-			},
-		)
+		const particle: Particle = this.pSDK.DrawCircle(`Circle_${new Date().getTime()}`, killedEntity, 1500, {
+			Color: this.menu.Detector.EnemyWarningColor.SelectedColor,
+			Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW
+		})
 
-		Storage.Particles.push({ 
-			particle: particle,
+		Storage.Particles.push({
+			particle,
 			gametime: GameRules?.RawGameTime!,
 			enemiesCount: enemiesGainedXp,
 			creepPos: killedEntity.IsVisible ? undefined : killedEntity.Position
@@ -239,7 +208,7 @@ const bootstrap = new (class CWhoGotCreep {
 		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
 			if (hero.Team === LocalPlayer?.Hero?.Team) {
 				const currXp: Nullable<number> = Storage.AlliesXP.get(hero.Name)
-				
+
 				if (currXp !== hero.CurrentXP) {
 					Storage.AlliesXP.set(hero.Name, hero.CurrentXP)
 				}

@@ -1,7 +1,8 @@
 import { Color, GUIInfo, RendererSDK, Vector2 } from "github.com/octarine-public/wrapper/index"
+
 import { TrackerMenu } from "../menu/tracker"
-import { BaseGUI } from "./base"
 import { Storage } from "../storage/storage"
+import { BaseGUI } from "./base"
 
 interface DrawParams {
 	isPostGame: boolean
@@ -30,7 +31,7 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 				const size = GUIInfo.ScaleWidth(this.menu.Size.value)
 				const heroSize = new Vector2(size, size)
 				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
-				
+
 				RendererSDK.Image(
 					`panorama/images/heroes/icons/${unit.attackerEntity.Name}_png.vtex_c`,
 					position,
@@ -49,7 +50,7 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 
 		const unitCreated = Storage.Units[0].gameTime
 
-		if ((unitCreated + this.menu.TimeToShow.value) < gametime) {
+		if (unitCreated + this.menu.TimeToShow.value < gametime) {
 			Storage.Units.shift()
 		}
 	}
