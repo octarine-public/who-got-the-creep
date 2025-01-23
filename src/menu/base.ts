@@ -5,7 +5,7 @@ export abstract class BaseMenu {
 	public readonly State: Menu.Toggle
 
 	constructor(node: Menu.Node, nodeName: string, defaultState = true, tooltip?: string) {
-		this.Tree = node.AddNode(nodeName, ImageData.Paths.Icons.icon_svg_hamburger, tooltip)
+		this.Tree = node.AddNode(nodeName, ImageData.Icons.icon_svg_hamburger, tooltip)
 		this.State = this.Tree.AddToggle("State", defaultState)
 	}
 

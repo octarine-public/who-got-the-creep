@@ -10,7 +10,6 @@ import {
 	Particle,
 	ParticleAttachment,
 	ParticlesSDK,
-	Sleeper,
 	Unit
 } from "github.com/octarine-public/wrapper/index"
 
@@ -27,13 +26,8 @@ interface AttackOutcome {
 }
 
 const bootstrap = new (class CWhoGotCreep {
-	// constructor() {
-	// 	this.menu.MenuChanged(() => {})
-	// }
-
-	private readonly pSDK = new ParticlesSDK()
-	private readonly sleeper = new Sleeper()
-	private readonly menu = new MenuManager(this.sleeper)
+	public readonly pSDK = new ParticlesSDK()
+	private readonly menu = new MenuManager()
 	private readonly detectorGUI = new DetectorGUI(this.menu.Detector)
 	private readonly trackerGUI = new TrackerGUI(this.menu.Tracker)
 
@@ -61,7 +55,7 @@ const bootstrap = new (class CWhoGotCreep {
 		}
 
 		this.trackerGameEvent(killedEntity, attackerEntity)
-		this.detectorGameEvent(killedEntity, attackerEntity)
+		this.detectorGameEvent(killedEntity)
 	}
 
 	public Tick() {
@@ -124,14 +118,14 @@ const bootstrap = new (class CWhoGotCreep {
 			return
 		}
 
-		const a = Storage.Units.push({
+		Storage.Units.push({
 			lastCreepPos: killedEntity.Position.Clone(),
 			attackerEntity,
 			gameTime: GameRules?.RawGameTime!
 		})
 	}
 
-	private detectorGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
+	private detectorGameEvent(killedEntity: Unit): void {
 		if (!this.state(this.menu.Detector)) {
 			return
 		}
@@ -225,4 +219,5 @@ EventsSDK.on("GameEvent", (eventName: string, obj: any) => bootstrap.GameEvent(e
 
 EventsSDK.on("GameEnded", () => {
 	Storage.Clear()
+	bootstrap.pSDK.DestroyAll()
 })
