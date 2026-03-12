@@ -11,7 +11,7 @@ export class TrackerMenu extends BaseMenu {
 	public readonly DisibleMin: Menu.Slider
 
 	constructor(node: Menu.Node) {
-		super(node, "Who got the creep", false, "Shows who last hit the creep")
+		super(node, "Who got the creep", true, "Shows who last hit the creep")
 		this.ShowAllyCreeps = this.Tree.AddToggle("Show ally creeps", false)
 		this.ShowAllyHeroes = this.Tree.AddToggle("Show ally heroes", false)
 		this.Size = this.Tree.AddSlider("Size", 30, 25, 50)
