@@ -119,7 +119,7 @@ const bootstrap = new (class CWhoGotCreep {
 		}
 
 		Storage.Units.push({
-			lastCreepPos: killedEntity.Position.Clone(),
+			lastCreepPos: killedEntity.Position.Clone().AddScalarZ(killedEntity.HealthBarOffset),
 			attackerEntity,
 			gameTime: GameRules?.RawGameTime!
 		})

@@ -19,11 +19,11 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 			return
 		}
 
-		this.drawHeroesIcons()
+		this.drawHeroesIcons(params.gametime)
 		this.destroyOldHeroesIcons(params.gametime)
 	}
 
-	private drawHeroesIcons(): void {
+	private drawHeroesIcons(gametime: number): void {
 		Storage.Units.forEach(unit => {
 			const creepPos = unit.lastCreepPos
 			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
@@ -31,13 +31,25 @@ export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
 				const size = GUIInfo.ScaleWidth(this.menu.Size.value)
 				const heroSize = new Vector2(size, size)
 				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
+				let alpha = this.menu.Opactity.value * 2.55
+
+				if (this.menu.Animation.value) {
+					const elapsed = Math.max(gametime - unit.gameTime, 0)
+					position.SubtractScalarY(GUIInfo.ScaleHeight(60) * elapsed)
+
+					const fadeTime = 0.5
+					const timeLeft = this.menu.TimeToShow.value - elapsed
+					if (timeLeft < fadeTime) {
+						alpha *= Math.max(timeLeft, 0) / fadeTime
+					}
+				}
 
 				RendererSDK.Image(
 					`panorama/images/heroes/icons/${unit.attackerEntity.Name}_png.vtex_c`,
 					position,
 					-1,
 					heroSize,
-					Color.White.SetA(this.menu.Opactity.value * 2.55)
+					Color.White.SetA(alpha)
 				)
 			}
 		})
