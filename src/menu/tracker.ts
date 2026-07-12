@@ -17,7 +17,10 @@ export class TrackerMenu extends BaseMenu {
 		this.ShowAllyHeroes = this.Tree.AddToggle("Show ally heroes", false)
 		this.Animation = this.Tree.AddToggle("Animation", true, "Icon floats up while shown")
 		this.Size = this.Tree.AddSlider("Size", 30, 25, 50)
-		this.TimeToShow = this.Tree.AddSlider("Time to show seconds", 2, 1, 5)
+		this.TimeToShow = this.Tree.AddSlider("Time to show seconds", 1.5, 1, 5, 1)
+		this.TimeToShow.OnValue(slider => {
+			slider.value = Math.round(slider.value * 2) / 2
+		})
 		this.Opactity = this.Tree.AddSlider("Opacity", 85, 40, 100)
 		this.DisibleMin = this.Tree.AddSlider("Disable after N minutes", 15, 5, 60)
 	}
