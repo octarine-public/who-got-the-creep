@@ -47,7 +47,7 @@ const bootstrap = new (class CWhoGotCreep {
 
 		if (
 			!(killedEntity instanceof Unit) ||
-			!killedEntity.IsCreep ||
+			(!killedEntity.IsCreep && !killedEntity.IsBuilding && !killedEntity.IsRoshan) ||
 			!(attackerEntity instanceof Unit) ||
 			!attackerEntity.IsHero
 		) {
@@ -109,11 +109,17 @@ const bootstrap = new (class CWhoGotCreep {
 		}
 
 		const gametime: number = GameRules?.RawGameTime ?? 0
+		const isBigKill = killedEntity.IsBuilding || killedEntity.IsRoshan
+
+		if (isBigKill && !this.menu.Tracker.BigKills.value) {
+			return
+		}
 
 		if (
-			this.menu.Tracker.DisibleMin.value * 60 < gametime ||
-			(!killedEntity.IsEnemy(attackerEntity) && !this.menu.Tracker.ShowAllyCreeps.value) ||
-			(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.Tracker.ShowAllyHeroes.value)
+			!isBigKill &&
+			(this.menu.Tracker.DisibleMin.value * 60 < gametime ||
+				(!killedEntity.IsEnemy(attackerEntity) && !this.menu.Tracker.ShowAllyCreeps.value) ||
+				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.Tracker.ShowAllyHeroes.value))
 		) {
 			return
 		}
@@ -121,7 +127,8 @@ const bootstrap = new (class CWhoGotCreep {
 		Storage.Units.push({
 			lastCreepPos: killedEntity.Position.Clone().AddScalarZ(killedEntity.HealthBarOffset),
 			attackerEntity,
-			gameTime: GameRules?.RawGameTime!
+			gameTime: GameRules?.RawGameTime!,
+			isBigKill
 		})
 	}
 

@@ -4,6 +4,7 @@ export interface CreepData {
 	lastCreepPos: Vector3
 	attackerEntity: Unit
 	gameTime: number
+	isBigKill: boolean
 }
 
 export interface ParticleData {
