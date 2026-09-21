@@ -1,230 +1,71 @@
-import "../translations"
+import "./translations"
 
-import {
-	DOTAGameState,
-	EntityManager,
-	EventsSDK,
-	GameRules,
-	Hero,
-	LocalPlayer,
-	Particle,
-	ParticleAttachment,
-	ParticlesSDK,
-	Unit
-} from "github.com/octarine-public/wrapper/index"
-
-import { DetectorGUI } from "./gui/detector"
-import { DestroyOldParticles } from "./gui/particles"
-import { TrackerGUI } from "./gui/tracker"
-import { BaseMenu } from "./menu/base"
+import { XpDetector } from "./detector"
 import { MenuManager } from "./menu/index"
-import { Storage } from "./storage/storage"
+import { LastHitTracker } from "./tracker"
 
-interface AttackOutcome {
-	entindex_killed: number
-	entindex_attacker: number
-}
-
-const bootstrap = new (class CWhoGotCreep {
-	public readonly pSDK = new ParticlesSDK()
+new (class CLastHitESP {
 	private readonly menu = new MenuManager()
-	private readonly detectorGUI = new DetectorGUI(this.menu.Detector)
-	private readonly trackerGUI = new TrackerGUI(this.menu.Tracker)
+	private readonly tracker = new LastHitTracker(this.menu.Tracker)
+	private readonly detector = new XpDetector(this.menu.Detector)
 
-	public GameEvent(eventName: string, obj: any): void {
-		if (!this.menu.State.value) {
-			return
-		}
-
-		if (!this.shouldAttackOutcome(eventName, obj)) {
-			return
-		}
-
-		const [killedEntity, attackerEntity] = [
-			EntityManager.EntityByIndex(obj.entindex_killed),
-			EntityManager.EntityByIndex(obj.entindex_attacker)
-		]
-
-		if (
-			!(killedEntity instanceof Unit) ||
-			(!killedEntity.IsCreep && !killedEntity.IsBuilding && !killedEntity.IsRoshan) ||
-			!(attackerEntity instanceof Unit) ||
-			!attackerEntity.IsHero
-		) {
-			return
-		}
-
-		this.trackerGameEvent(killedEntity, attackerEntity)
-		this.detectorGameEvent(killedEntity)
+	constructor() {
+		EventsSDK.on("Draw", this.Draw.bind(this))
+		EventsSDK.on("GameEvent", this.GameEvent.bind(this))
+		EventsSDK.on("PostDataUpdate", this.PostDataUpdate.bind(this))
+		EventsSDK.on("GameEnded", this.GameEnded.bind(this))
 	}
 
-	public Tick() {
-		this.updateAlliesXP()
-	}
-
-	public Draw(): void {
-		DestroyOldParticles(Storage.Particles, GameRules?.RawGameTime!)
-
-		if (!this.menu.State.value || this.localHero === undefined) {
-			return
-		}
-
-		this.detectorGUI.Draw({
-			localHero: this.localHero,
-			isPostGame: this.isPostGame
-		})
-		this.trackerGUI.Draw({
-			isPostGame: this.isPostGame,
-			gametime: GameRules?.RawGameTime!
-		})
-	}
-
-	private get isPostGame(): boolean {
-		return GameRules === undefined || GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
-	}
-
-	private get localHero(): Nullable<Hero> {
-		return LocalPlayer?.Hero
-	}
-
-	private state(menu: BaseMenu): boolean {
-		return menu.State.value
-	}
-
-	private getXpDiff(hero: Hero): number {
-		return hero.CurrentXP - Storage.AlliesXP.get(hero.Name)!
-	}
-
-	private shouldAttackOutcome(eventName: string, obj: any): obj is AttackOutcome {
+	private get isPostGame() {
 		return (
-			eventName === "entity_killed" &&
-			typeof obj.entindex_killed === "number" &&
-			typeof obj.entindex_attacker === "number"
+			Dota2SDK.GameRules === undefined || Dota2SDK.GameRules.GameState === DOTAGameState.DOTA_GAMERULES_STATE_POST_GAME
 		)
 	}
-
-	private trackerGameEvent(killedEntity: Unit, attackerEntity: Unit): void {
-		if (!this.state(this.menu.Tracker)) {
-			return
-		}
-
-		const gametime: number = GameRules?.RawGameTime ?? 0
-		const isBigKill = killedEntity.IsBuilding || killedEntity.IsRoshan
-
-		if (isBigKill && !this.menu.Tracker.BigKills.value) {
-			return
-		}
-
-		if (
-			!isBigKill &&
-			(this.menu.Tracker.DisibleMin.value * 60 < gametime ||
-				(!killedEntity.IsEnemy(attackerEntity) && !this.menu.Tracker.ShowAllyCreeps.value) ||
-				(!attackerEntity.IsMyHero && !attackerEntity.IsEnemy() && !this.menu.Tracker.ShowAllyHeroes.value))
-		) {
-			return
-		}
-
-		Storage.Units.push({
-			lastCreepPos: killedEntity.Position.Clone().AddScalarZ(killedEntity.HealthBarOffset),
-			attackerEntity,
-			gameTime: GameRules?.RawGameTime!,
-			isBigKill
-		})
+	private get shouldDraw() {
+		return this.menu.State.value && !this.isPostGame && GameState.UIState === DOTAGameUIState.DOTA_GAME_UI_DOTA_INGAME
 	}
 
-	private detectorGameEvent(killedEntity: Unit): void {
-		if (!this.state(this.menu.Detector)) {
+	protected Draw(): void {
+		const localHero = LocalPlayer?.Hero
+		if (!this.shouldDraw || localHero === undefined) {
 			return
 		}
-
-		if (!killedEntity.IsNeutral) {
-			return
-		}
-
-		const heroes: Hero[] = EntityManager.GetEntitiesByClass(Hero)
-		const alliesNear: Hero[] = []
-
-		heroes.forEach((hero: Hero): void => {
-			if (this.localHero!.Team === hero.Team && hero.Distance(killedEntity) <= 1500) {
-				alliesNear.push(hero)
-			}
-		})
-
-		// console.log("allies who gained xp", alliesGainedXp)
-
-		if (alliesNear.length === 0) {
-			return
-		}
-
-		const xpPerHero: number = alliesNear.map((hero: Hero) => this.getXpDiff(hero)).filter(diff => diff !== 0)[0] ?? 0
-
-		// xp per hero can be zero if every ally has 30 level
-		if (xpPerHero === 0) {
-			return
-		}
-
-		const heroesGainedXp: number = Math.floor((killedEntity.XPBounty + killedEntity.XPBountyExtra) / xpPerHero)
-
-		// console.log("heroes gained xp", heroesGainedXp)
-
-		const enemiesGainedXp: number = heroesGainedXp - alliesNear.length
-
-		// console.log("enemies gained xp", enemiesGainedXp)
-
-		if (enemiesGainedXp <= 0) {
-			return
-		}
-
-		const visibleEnemies: number = EntityManager.GetEntitiesByClass(Hero).filter(
-			(hero: Hero): boolean => hero.IsEnemy() && hero.IsVisible && hero.Distance(killedEntity.Position) <= 1500
-		).length
-
-		// console.log("visible enemies", visibleEnemies)
-
-		if (visibleEnemies === enemiesGainedXp) {
-			return
-		}
-
-		// console.log("is killed creep visible", killedEntity.IsVisible)
-		// console.log("entity to set particle", killedEntity.IsVisible ? killedEntity : this.localHero!)
-
-		const particle: Particle = this.pSDK.DrawCircle(`Circle_${new Date().getTime()}`, killedEntity, 1500, {
-			Color: this.menu.Detector.EnemyWarningColor.SelectedColor,
-			Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW
-		})
-
-		Storage.Particles.push({
-			particle,
-			gametime: GameRules?.RawGameTime!,
-			enemiesCount: enemiesGainedXp,
-			creepPos: killedEntity.IsVisible ? undefined : killedEntity.Position
-		})
+		const gameTime = GameState.RawGameTime
+		this.tracker.Draw(gameTime)
+		this.detector.Draw(localHero, gameTime)
 	}
 
-	private updateAlliesXP(): void {
-		if (!this.menu.State.value) {
+	protected PostDataUpdate(): void {
+		const localHero = LocalPlayer?.Hero
+		if (this.menu.State.value && localHero !== undefined) {
+			this.detector.PostDataUpdate(localHero)
+		}
+	}
+
+	protected GameEvent(eventName: string, obj: any): void {
+		if (!this.menu.State.value || eventName !== "entity_killed") {
 			return
 		}
+		const killedIndex = obj.entindex_killed
+		const attackerIndex = obj.entindex_attacker
+		if (typeof killedIndex !== "number" || typeof attackerIndex !== "number") {
+			return
+		}
+		const killed = EntityManager.EntityByIndex(killedIndex)
+		const attacker = EntityManager.EntityByIndex(attackerIndex)
+		if (!(killed instanceof Unit) || !(attacker instanceof Hero)) {
+			return
+		}
+		const gameTime = GameState.RawGameTime
+		this.tracker.EntityKilled(killed, attacker, gameTime)
+		const localHero = LocalPlayer?.Hero
+		if (localHero !== undefined) {
+			this.detector.EntityKilled(killed, localHero, gameTime)
+		}
+	}
 
-		EntityManager.GetEntitiesByClass(Hero).forEach((hero: Hero): void => {
-			if (hero.Team === LocalPlayer?.Hero?.Team) {
-				const currXp: Nullable<number> = Storage.AlliesXP.get(hero.Name)
-
-				if (currXp !== hero.CurrentXP) {
-					Storage.AlliesXP.set(hero.Name, hero.CurrentXP)
-				}
-			}
-		})
+	protected GameEnded(): void {
+		this.tracker.GameEnded()
+		this.detector.GameEnded()
 	}
 })()
-
-EventsSDK.on("Draw", () => bootstrap.Draw())
-
-EventsSDK.on("Tick", () => bootstrap.Tick())
-
-EventsSDK.on("GameEvent", (eventName: string, obj: any) => bootstrap.GameEvent(eventName, obj))
-
-EventsSDK.on("GameEnded", () => {
-	Storage.Clear()
-	bootstrap.pSDK.DestroyAll()
-})

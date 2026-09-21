@@ -1,20 +1,16 @@
-import { ImageData, Menu } from "github.com/octarine-public/wrapper/index"
+import { LastHitIcons } from "./icons"
 
-export abstract class BaseMenu {
+/** A section of the page with a switch of its own riding its header and gating its rows. */
+export abstract class SectionMenu {
 	public readonly Tree: Menu.Node
 	public readonly State: Menu.Toggle
 
-	constructor(node: Menu.Node, nodeName: string, defaultState = true, tooltip?: string) {
-		this.Tree = node.AddNode(nodeName, ImageData.Icons.icon_svg_hamburger, tooltip)
+	constructor(node: Menu.Node, name: string, icon: string, tooltip: string, defaultState: boolean) {
+		this.Tree = node.AddNode(name, icon, tooltip)
+		this.Tree.SortNodes = false
 		this.State = this.Tree.AddToggle("State", defaultState)
-	}
-
-	public MenuChanged(callback: () => void) {
-		this.State.OnValue(() => callback())
-	}
-
-	public ResetSettings(callback: () => void) {
-		this.State.value = this.State.defaultValue
-		callback()
+		this.State.IconPath = LastHitIcons.State
+		this.Tree.HeaderControl = this.State
+		this.Tree.Gate = this.State
 	}
 }

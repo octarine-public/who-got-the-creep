@@ -1,78 +1,67 @@
-import { Color, GUIInfo, RendererSDK, Vector2 } from "github.com/octarine-public/wrapper/index"
-
+import { canvas } from "../../render"
+import { PortraitPose, PosePortrait } from "../animation"
 import { TrackerMenu } from "../menu/tracker"
-import { CreepData, Storage } from "../storage/storage"
-import { BaseGUI } from "./base"
+import { LastHitModel } from "../model"
 
-interface DrawParams {
-	isPostGame: boolean
-	gametime: number
-}
+/** How far the drop shadow reaches out from the portrait, as a fraction of its diameter. */
+const SHADOW_FRACTION = 0.1
+/** The shadow's reach in px at the smallest the portrait gets. */
+const SHADOW_MIN = 2
+/** The countdown ring's width in px at 1080p. */
+const RING_WIDTH = 2
 
-export class TrackerGUI extends BaseGUI<DrawParams, TrackerMenu> {
-	constructor(menu: TrackerMenu) {
-		super(menu)
+/**
+ * The portrait of whoever took the last hit, over the spot the unit died at: a round portrait
+ * on the shadow a buff icon wears, moving as the chosen animation says and fading as its time
+ * runs out. A kind that asks for it rims the portrait with the taker's player colour, running
+ * down with the time left.
+ */
+export class TrackerGUI {
+	/** Reused every frame: the pose is read at once and nothing of it is kept. */
+	private readonly pose: PortraitPose = { shift: new Vector2(), scale: 1, opacity: 1 }
+
+	constructor(private readonly menu: TrackerMenu) {}
+
+	public Draw(units: LastHitModel[], gameTime: number): void {
+		for (let index = units.length - 1; index > -1; index--) {
+			this.drawUnit(units[index], gameTime)
+		}
 	}
 
-	public Draw(params: DrawParams): void {
-		if (!super.State(this.menu) || params.isPostGame) {
+	private drawUnit(unit: LastHitModel, gameTime: number): void {
+		const screen = RendererSDK.WorldToScreen(unit.Position)
+		if (screen === undefined) {
 			return
 		}
-
-		this.drawHeroesIcons(params.gametime)
-		this.destroyOldHeroesIcons(params.gametime)
-	}
-
-	private drawHeroesIcons(gametime: number): void {
-		Storage.Units.forEach(unit => {
-			const creepPos = unit.lastCreepPos
-			const w2sPosition = RendererSDK.WorldToScreen(creepPos)
-			if (w2sPosition !== undefined) {
-				const size = GUIInfo.ScaleWidth(
-					unit.isBigKill ? this.menu.BigKillsSize.value : this.menu.Size.value
-				)
-				const heroSize = new Vector2(size, size)
-				const position = w2sPosition.Subtract(heroSize.DivideScalar(2))
-				let alpha = this.menu.Opactity.value * 2.55
-
-				if (this.menu.Animation.value) {
-					const elapsed = Math.max(gametime - unit.gameTime, 0)
-					position.SubtractScalarY(GUIInfo.ScaleHeight(60) * elapsed)
-
-					const fadeTime = 0.5
-					const timeLeft = this.showTime(unit) - elapsed
-					if (timeLeft < fadeTime) {
-						alpha *= Math.max(timeLeft, 0) / fadeTime
-					}
-				}
-
-				const iconPath = `panorama/images/heroes/icons/${unit.attackerEntity.Name}_png.vtex_c`
-
-				if (unit.isBigKill) {
-					const padding = GUIInfo.ScaleWidth(4)
-					RendererSDK.FilledCircle(
-						position.SubtractScalar(padding),
-						heroSize.AddScalar(padding * 2),
-						unit.attackerEntity.Color.Clone().SetA(alpha)
-					)
-					RendererSDK.Image(iconPath, position, 0, heroSize, Color.White.SetA(alpha))
-				} else {
-					RendererSDK.Image(iconPath, position, -1, heroSize, Color.White.SetA(alpha))
-				}
-			}
+		const menu = this.menu
+		const kind = menu.Kind(unit.Kind)
+		const showTime = kind.TimeToShow.value
+		const elapsed = unit.Elapsed(gameTime)
+		const pose = this.pose
+		PosePortrait(menu.Animation.SelectedID, elapsed, showTime, pose)
+		const size = Math.round(GUIInfo.ScaleHeight(kind.Size.value) * pose.scale)
+		const opacity = (menu.Opacity.value / 100) * pose.opacity
+		if (size <= 0 || opacity <= 0) {
+			return
+		}
+		const position = screen
+			.AddForThis(pose.shift.MultiplyScalarForThis(GUIInfo.ScaleHeight(1)))
+			.SubtractScalarForThis(size / 2)
+			.RoundForThis()
+		if (this.containsHUD(position)) {
+			return
+		}
+		canvas.CircleTimer(position, size, {
+			texture: unit.Texture,
+			progress: kind.Ring.value ? 1 - elapsed / showTime : 0,
+			color: unit.Color,
+			ringWidth: Math.max(1, Math.round(GUIInfo.ScaleHeight(RING_WIDTH))),
+			shadow: Math.max(Math.round(size * SHADOW_FRACTION), SHADOW_MIN),
+			opacity
 		})
 	}
 
-	private destroyOldHeroesIcons(gametime: number): void {
-		for (let i = Storage.Units.length - 1; i > -1; i--) {
-			const unit = Storage.Units[i]
-			if (unit.gameTime + this.showTime(unit) < gametime) {
-				Storage.Units.splice(i, 1)
-			}
-		}
-	}
-
-	private showTime(unit: CreepData): number {
-		return unit.isBigKill ? this.menu.BigKillsTimeToShow.value : this.menu.TimeToShow.value
+	private containsHUD(position: Vector2): boolean {
+		return GUIInfo.ContainsShop(position) || GUIInfo.ContainsMiniMap(position) || GUIInfo.ContainsScoreboard(position)
 	}
 }

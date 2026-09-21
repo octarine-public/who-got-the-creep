@@ -1,28 +1,25 @@
-import { Color, Menu } from "github.com/octarine-public/wrapper/index"
+import { SectionMenu } from "./base"
+import { LastHitIcons } from "./icons"
 
-import { BaseMenu } from "./base"
-
-export class DetectorMenu extends BaseMenu {
+export class DetectorMenu extends SectionMenu {
 	public readonly EnemyWarningColor: Menu.ColorPicker
 	public readonly KilledCreepColor: Menu.ColorPicker
 
 	constructor(node: Menu.Node) {
-		super(node, "Xp ESP", false, "Shows last hitted neutrals by enemy, detects enemis around if you last hit neutrals")
-
+		super(
+			node,
+			"Xp ESP",
+			LastHitIcons.Detector,
+			"Shows neutrals last hit by an unseen enemy\nand warns of enemies around while you farm the jungle",
+			false
+		)
 		this.EnemyWarningColor = this.Tree.AddColorPicker("Enemy warning", Color.Red, "Radius with enemies inside")
+		this.EnemyWarningColor.IconPath = LastHitIcons.Color
 		this.KilledCreepColor = this.Tree.AddColorPicker(
 			"Last hitted neutral",
 			Color.Blue,
-			"Radius where neutral were last hitted"
+			"Where the neutral was last hit"
 		)
-	}
-
-	public ResetSettings(callback: () => void): void {
-		super.ResetSettings(callback)
-
-		this.State.value = this.State.defaultValue
-		this.EnemyWarningColor.SelectedColor.CopyFrom(this.EnemyWarningColor.defaultColor)
-		this.KilledCreepColor.SelectedColor.CopyFrom(this.KilledCreepColor.defaultColor)
-		callback()
+		this.KilledCreepColor.IconPath = LastHitIcons.Color
 	}
 }
