@@ -42,17 +42,12 @@ new (class CLastHitESP {
 		}
 	}
 
-	protected GameEvent(eventName: string, obj: any): void {
+	protected GameEvent(eventName: string, event: IEntityKilledEvent): void {
 		if (!this.menu.State.value || eventName !== "entity_killed") {
 			return
 		}
-		const killedIndex = obj.entindex_killed
-		const attackerIndex = obj.entindex_attacker
-		if (typeof killedIndex !== "number" || typeof attackerIndex !== "number") {
-			return
-		}
-		const killed = EntityManager.EntityByIndex(killedIndex)
-		const attacker = EntityManager.EntityByIndex(attackerIndex)
+		const killed = EntityManager.EntityByIndex(event.entindex_killed)
+		const attacker = EntityManager.EntityByIndex(event.entindex_attacker)
 		if (!(killed instanceof Unit) || !(attacker instanceof Hero)) {
 			return
 		}
