@@ -1,7 +1,7 @@
 import { canvas } from "../../render"
 import { PortraitPose, PosePortrait } from "../animation"
 import { TrackerMenu } from "../menu/tracker"
-import { LastHitModel } from "../model"
+import { EPortrait, LastHitModel } from "../model"
 
 /** How far the drop shadow reaches out from the portrait, as a fraction of its diameter. */
 const SHADOW_FRACTION = 0.1
@@ -12,8 +12,8 @@ const RING_WIDTH = 2
 
 /**
  * The portrait of whoever took the last hit, over the spot the unit died at: a round portrait
- * on the shadow a buff icon wears, moving as the chosen animation says and fading as its time
- * runs out. A kind that asks for it rims the portrait with the taker's player colour, running
+ * on the shadow a buff icon wears, or the bare hero image, whose rim that shadow would outline,
+ * moving as the chosen animation says and fading as its time runs out. A kind that asks for it rims the portrait with the taker's player colour, running
  * down with the time left.
  */
 export class TrackerGUI {
@@ -51,12 +51,14 @@ export class TrackerGUI {
 		if (this.containsHUD(position)) {
 			return
 		}
+		const portrait = menu.Portrait.SelectedID
 		canvas.CircleTimer(position, size, {
-			texture: unit.Texture,
+			texture: unit.Texture(portrait),
 			progress: kind.Ring.value ? 1 - elapsed / showTime : 0,
 			color: unit.Color,
 			ringWidth: Math.max(1, Math.round(GUIInfo.ScaleHeight(RING_WIDTH))),
-			shadow: Math.max(Math.round(size * SHADOW_FRACTION), SHADOW_MIN),
+			shadow: portrait === EPortrait.HeroImage ? 0 : Math.max(Math.round(size * SHADOW_FRACTION), SHADOW_MIN),
+			innerShadow: false,
 			opacity
 		})
 	}

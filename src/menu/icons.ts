@@ -1,6 +1,11 @@
-/** Glyphs of the menu page: the SDK set, and the game's own where a row is about the game. */
+import { Paths } from "../paths"
+
+/**
+ * Glyphs of the menu page: the package's own for the page itself, the SDK set,
+ * and the game's own where a row is about the game.
+ */
 export const LastHitIcons = {
-	Page: ImageData.Icons.icon_svg_creep,
+	Page: `${Paths.Icons}/last-hit.svg`,
 	State: Menu.Icons.Power,
 	Tracker: Menu.Icons.IconJuggernaut,
 	Detector: Menu.Icons.IconEye,
@@ -10,6 +15,7 @@ export const LastHitIcons = {
 	Buildings: ImageData.Icons.icon_svg_roashan,
 	AllyCreeps: Menu.Icons.Ban,
 	AllyHeroes: Menu.Icons.Heart,
+	Portrait: Menu.Icons.Texture,
 	Animation: Menu.Icons.Animation,
 	Size: Menu.Icons.Expand,
 	Time: Menu.Icons.ClockSeconds,

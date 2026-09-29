@@ -6,12 +6,23 @@ export const enum EKillKind {
 	Building
 }
 
+/** What the portrait shows: the choices of the Portrait dropdown, in its order. */
+export const enum EPortrait {
+	MinimapIcon,
+	HeroImage
+}
+
+/** The dropdown's rows, one per {@link EPortrait} in its order. */
+export const PORTRAIT_NAMES = ["Minimap icon", "Hero image"]
+
 /** One last hit still on screen: where the unit died, who took it, when, and what it was. */
 export class LastHitModel {
 	/** The taker's player colour, the one the game rims their portrait with. */
 	public readonly Color: Color
-	/** The taker's square icon, cut to a disc when painted. */
-	public readonly Texture: string
+	/** The taker's minimap icon, cut to a disc when painted. */
+	public readonly Icon: string
+	/** The taker's wide hero image, cropped to a disc when painted. */
+	public readonly Image: string
 
 	constructor(
 		public readonly Position: Vector3,
@@ -20,7 +31,12 @@ export class LastHitModel {
 		public readonly Kind: EKillKind
 	) {
 		this.Color = PlayerCustomData.get(Attacker.PlayerID)?.Color ?? Attacker.Color
-		this.Texture = ImageData.GetHeroTexture(Attacker.Name, true)
+		this.Icon = ImageData.GetHeroTexture(Attacker.Name, true)
+		this.Image = ImageData.GetHeroTexture(Attacker.Name)
+	}
+
+	public Texture(portrait: EPortrait): string {
+		return portrait === EPortrait.HeroImage ? this.Image : this.Icon
 	}
 
 	public Elapsed(gameTime: number): number {

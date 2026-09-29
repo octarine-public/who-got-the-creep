@@ -1,5 +1,5 @@
 import { ANIMATION_NAMES, EAnimation } from "../animation"
-import { EKillKind } from "../model"
+import { EKillKind, EPortrait, PORTRAIT_NAMES } from "../model"
 import { SectionMenu } from "./base"
 import { LastHitIcons } from "./icons"
 
@@ -44,6 +44,7 @@ export class TrackerMenu extends SectionMenu {
 	public readonly Buildings: KillKindMenu
 	public readonly ShowAllyCreeps: Menu.Toggle
 	public readonly ShowAllyHeroes: Menu.Toggle
+	public readonly Portrait: Menu.Dropdown
 	public readonly Animation: Menu.Dropdown
 	public readonly Opacity: Menu.Slider
 
@@ -89,6 +90,13 @@ export class TrackerMenu extends SectionMenu {
 		this.ShowAllyCreeps.IconPath = LastHitIcons.AllyCreeps
 		this.ShowAllyHeroes = tree.AddToggle("Show ally heroes", false, "Creeps last hit by your allies, not only by you")
 		this.ShowAllyHeroes.IconPath = LastHitIcons.AllyHeroes
+		this.Portrait = tree.AddDropdown(
+			"Portrait",
+			PORTRAIT_NAMES,
+			EPortrait.MinimapIcon,
+			"What the portrait shows:\nthe hero's minimap icon or its image"
+		)
+		this.Portrait.IconPath = LastHitIcons.Portrait
 		this.Animation = tree.AddDropdown(
 			"Animation",
 			ANIMATION_NAMES,
