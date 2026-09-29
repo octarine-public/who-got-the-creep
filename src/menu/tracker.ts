@@ -1,5 +1,5 @@
 import { ANIMATION_NAMES, EAnimation } from "../animation"
-import { EKillKind, EPortrait, PORTRAIT_NAMES } from "../model"
+import { EKillKind, EPlayerColor, EPortrait, PLAYER_COLOR_NAMES, PORTRAIT_NAMES } from "../model"
 import { SectionMenu } from "./base"
 import { LastHitIcons } from "./icons"
 
@@ -10,15 +10,15 @@ function snapHalfStep(slider: Menu.Slider): void {
 
 /**
  * One kind of kill: the row that switches it on, and behind the gear at its end the size and
- * time of its portrait and whether the taker's player colour rims it.
+ * time of its portrait and where the taker's player colour goes on it.
  */
 export class KillKindMenu {
 	public readonly State: Menu.Toggle
 	public readonly Size: Menu.Slider
 	public readonly TimeToShow: Menu.Slider
-	public readonly Ring: Menu.Toggle
+	public readonly PlayerColor: Menu.Dropdown
 
-	constructor(node: Menu.Node, name: string, icon: string, tooltip: string, time: number, ring: boolean) {
+	constructor(node: Menu.Node, name: string, icon: string, tooltip: string, time: number, playerColor: EPlayerColor) {
 		this.State = node.AddToggle(name, true, tooltip)
 		this.State.IconPath = icon
 		const settings = node.AddSubSettings(this.State, undefined, icon)
@@ -28,12 +28,13 @@ export class KillKindMenu {
 		this.TimeToShow = settings.AddSlider("Time to show seconds", time, 1, 10, 1)
 		this.TimeToShow.IconPath = LastHitIcons.Time
 		this.TimeToShow.OnValue(snapHalfStep)
-		this.Ring = settings.AddToggle(
-			"Player color ring",
-			ring,
-			"Rims the portrait with the taker's player color,\nrunning down with the time left"
+		this.PlayerColor = settings.AddDropdown(
+			"Player color",
+			PLAYER_COLOR_NAMES,
+			playerColor,
+			"Where the taker's player color goes:\na ring running down with the time left,\nor the backdrop behind the portrait"
 		)
-		this.Ring.IconPath = LastHitIcons.Ring
+		this.PlayerColor.IconPath = LastHitIcons.PlayerColor
 	}
 }
 
@@ -66,7 +67,7 @@ export class TrackerMenu extends SectionMenu {
 			LastHitIcons.LaneCreeps,
 			"Creeps of the lane waves",
 			1.5,
-			false
+			EPlayerColor.None
 		)
 		this.NeutralCreeps = new KillKindMenu(
 			tree,
@@ -74,16 +75,23 @@ export class TrackerMenu extends SectionMenu {
 			LastHitIcons.NeutralCreeps,
 			"Camps of the jungle, ancients included",
 			1.5,
-			false
+			EPlayerColor.None
 		)
-		this.Heroes = new KillKindMenu(tree, "Heroes", LastHitIcons.Heroes, "Who took the kill on a hero", 2.5, true)
+		this.Heroes = new KillKindMenu(
+			tree,
+			"Heroes",
+			LastHitIcons.Heroes,
+			"Who took the kill on a hero",
+			2.5,
+			EPlayerColor.Ring
+		)
 		this.Buildings = new KillKindMenu(
 			tree,
 			"Towers & Roshan",
 			LastHitIcons.Buildings,
 			"Towers, other buildings and Roshan",
 			2.5,
-			true
+			EPlayerColor.Ring
 		)
 		this.kinds = [this.LaneCreeps, this.NeutralCreeps, this.Heroes, this.Buildings]
 		this.ShowAllyCreeps = tree.AddToggle("Show ally creeps", false, "Denies: creeps last hit by their own side")

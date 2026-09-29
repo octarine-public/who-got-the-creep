@@ -15,6 +15,19 @@ export const enum EPortrait {
 /** The dropdown's rows, one per {@link EPortrait} in its order. */
 export const PORTRAIT_NAMES = ["Minimap icon", "Hero image"]
 
+/**
+ * Where the taker's player colour goes: nowhere, the ring on the rim running down with the time
+ * left, or the backdrop the portrait sits on. The choices of the Player color dropdown, in its order.
+ */
+export const enum EPlayerColor {
+	None,
+	Ring,
+	Backdrop
+}
+
+/** The dropdown's rows, one per {@link EPlayerColor} in its order. */
+export const PLAYER_COLOR_NAMES = ["None", "Ring", "Backdrop"]
+
 /** One last hit still on screen: where the unit died, who took it, when, and what it was. */
 export class LastHitModel {
 	/** The taker's player colour, the one the game rims their portrait with. */

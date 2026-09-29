@@ -20,6 +20,6 @@ export const LastHitIcons = {
 	Size: Menu.Icons.Expand,
 	Time: Menu.Icons.ClockSeconds,
 	Opacity: Menu.Icons.Checkerboard,
-	Ring: Menu.Icons.PlateRing,
+	PlayerColor: Menu.Icons.PlateRing,
 	Color: Menu.Icons.Palette
 } as const
