@@ -28,10 +28,28 @@ export const enum EPlayerColor {
 /** The dropdown's rows, one per {@link EPlayerColor} in its order. */
 export const PLAYER_COLOR_NAMES = ["None", "Ring", "Backdrop"]
 
+/**
+ * What colour the ring or the backdrop wears: the taker's player colour, or just green for an
+ * ally (you included) and red for an enemy. The choices of the Colors dropdown, in its order.
+ */
+export const enum EColors {
+	Player,
+	Team
+}
+
+/** The dropdown's rows, one per {@link EColors} in its order. */
+export const COLORS_NAMES = ["Player colors", "Ally / enemy"]
+
+/** The ally and enemy colours of the top panel's outlines. */
+const ALLY_COLOR = new Color(82, 224, 82) // #52E052
+const ENEMY_COLOR = new Color(224, 82, 82) // #E05252
+
 /** One last hit still on screen: where the unit died, who took it, when, and what it was. */
 export class LastHitModel {
 	/** The taker's player colour, the one the game rims their portrait with. */
 	public readonly Color: Color
+	/** Green for an ally of yours or you, red for an enemy. */
+	public readonly TeamColor: Color
 	/** The taker's minimap icon, cut to a disc when painted. */
 	public readonly Icon: string
 	/** The taker's wide hero image, cropped to a disc when painted. */
@@ -44,8 +62,13 @@ export class LastHitModel {
 		public readonly Kind: EKillKind
 	) {
 		this.Color = PlayerCustomData.get(Attacker.PlayerID)?.Color ?? Attacker.Color
+		this.TeamColor = Attacker.IsEnemy() ? ENEMY_COLOR : ALLY_COLOR
 		this.Icon = ImageData.GetHeroTexture(Attacker.Name, true)
 		this.Image = ImageData.GetHeroTexture(Attacker.Name)
+	}
+
+	public PaintColor(colors: EColors): Color {
+		return colors === EColors.Team ? this.TeamColor : this.Color
 	}
 
 	public Texture(portrait: EPortrait): string {

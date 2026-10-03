@@ -1,5 +1,13 @@
 import { ANIMATION_NAMES, EAnimation } from "../animation"
-import { EKillKind, EPlayerColor, EPortrait, PLAYER_COLOR_NAMES, PORTRAIT_NAMES } from "../model"
+import {
+	COLORS_NAMES,
+	EColors,
+	EKillKind,
+	EPlayerColor,
+	EPortrait,
+	PLAYER_COLOR_NAMES,
+	PORTRAIT_NAMES
+} from "../model"
 import { SectionMenu } from "./base"
 import { LastHitIcons } from "./icons"
 
@@ -46,6 +54,7 @@ export class TrackerMenu extends SectionMenu {
 	public readonly ShowAllyCreeps: Menu.Toggle
 	public readonly ShowAllyHeroes: Menu.Toggle
 	public readonly Portrait: Menu.Dropdown
+	public readonly Colors: Menu.Dropdown
 	public readonly Animation: Menu.Dropdown
 	public readonly Opacity: Menu.Slider
 
@@ -105,6 +114,13 @@ export class TrackerMenu extends SectionMenu {
 			"What the portrait shows:\nthe hero's minimap icon or its image"
 		)
 		this.Portrait.IconPath = LastHitIcons.Portrait
+		this.Colors = tree.AddDropdown(
+			"Colors",
+			COLORS_NAMES,
+			EColors.Player,
+			"What color the ring or the backdrop wears:\nthe taker's player color,\nor just green for allies and red for enemies"
+		)
+		this.Colors.IconPath = LastHitIcons.Color
 		this.Animation = tree.AddDropdown(
 			"Animation",
 			ANIMATION_NAMES,

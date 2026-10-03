@@ -15,11 +15,15 @@ const RING_WIDTH = 2
  * on the shadow a buff icon wears, or the bare hero image, whose rim that shadow would outline,
  * moving as the chosen animation says and fading as its time runs out. A kind that asks for it
  * wears the taker's player colour: as a ring on the rim running down with the time left, or as
- * that shadow itself, which then backs the hero image too.
+ * a disc filled behind the portrait with that shadow glowing around it.
  */
 export class TrackerGUI {
 	/** Reused every frame: the pose is read at once and nothing of it is kept. */
 	private readonly pose: PortraitPose = { shift: new Vector2(), scale: 1, opacity: 1 }
+	/** The backdrop disc's size, reused every frame. */
+	private readonly box = new Vector2()
+	/** The backdrop's colour at the portrait's opacity, reused every frame. */
+	private readonly backdropColor = new Color()
 
 	constructor(private readonly menu: TrackerMenu) {}
 
@@ -55,17 +59,27 @@ export class TrackerGUI {
 		const portrait = menu.Portrait.SelectedID
 		const playerColor = kind.PlayerColor.SelectedID
 		const backdrop = playerColor === EPlayerColor.Backdrop
+		const color = unit.PaintColor(menu.Colors.SelectedID)
 		const shadowed = backdrop || portrait !== EPortrait.HeroImage
+		if (backdrop) {
+			// the timer only glows around the rim: the backdrop itself is a disc under the portrait
+			this.box.x = this.box.y = size
+			canvas.Circle(position, this.box, { color: this.faded(color, opacity) })
+		}
 		canvas.CircleTimer(position, size, {
 			texture: unit.Texture(portrait),
 			progress: playerColor === EPlayerColor.Ring ? 1 - elapsed / showTime : 0,
-			color: unit.Color,
+			color,
 			ringWidth: Math.max(1, Math.round(GUIInfo.ScaleHeight(RING_WIDTH))),
 			shadow: shadowed ? Math.max(Math.round(size * SHADOW_FRACTION), SHADOW_MIN) : 0,
-			shadowColor: backdrop ? unit.Color : undefined,
+			shadowColor: backdrop ? color : undefined,
 			innerShadow: false,
 			opacity
 		})
+	}
+
+	private faded(color: Color, opacity: number): Color {
+		return this.backdropColor.CopyFrom(color).SetA(Math.round(color.a * opacity))
 	}
 
 	private containsHUD(position: Vector2): boolean {
