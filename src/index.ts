@@ -26,6 +26,7 @@ new (class CLastHitESP {
 	}
 
 	protected Draw(): void {
+		this.menu.Tracker.SeedCreepLogic()
 		const localHero = LocalPlayer?.Hero
 		if (!this.shouldDraw || localHero === undefined) {
 			return

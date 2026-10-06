@@ -11,6 +11,9 @@ import {
 import { SectionMenu } from "./base"
 import { LastHitIcons } from "./icons"
 
+/** The match clock past which the creep rows' default rule switches them off, in seconds. */
+const CREEPS_UNTIL = 15 * 60
+
 /** The time rail is declared to a tenth so the thumb glides; the value it lands on is a half. */
 function snapHalfStep(slider: Menu.Slider): void {
 	slider.value = Math.round(slider.value * 2) / 2
@@ -60,6 +63,8 @@ export class TrackerMenu extends SectionMenu {
 
 	/** The kinds by {@link EKillKind}, so a kill is answered with its own rows. */
 	private readonly kinds: readonly KillKindMenu[]
+	/** Hidden: set once the default creep rules went in, so a rule the user removed stays removed. */
+	private readonly creepLogicSeeded: Menu.Toggle
 
 	constructor(node: Menu.Node) {
 		super(
@@ -92,21 +97,23 @@ export class TrackerMenu extends SectionMenu {
 			LastHitIcons.Heroes,
 			"Who took the kill on a hero",
 			2.5,
-			EPlayerColor.Ring
+			EPlayerColor.Backdrop
 		)
 		this.Buildings = new KillKindMenu(
 			tree,
 			"Towers & Roshan",
 			LastHitIcons.Buildings,
-			"Towers, other buildings and Roshan",
+			"Towers, other buildings, Roshan and Undying's tombstone",
 			2.5,
-			EPlayerColor.Ring
+			EPlayerColor.Backdrop
 		)
 		this.kinds = [this.LaneCreeps, this.NeutralCreeps, this.Heroes, this.Buildings]
 		this.ShowAllyCreeps = tree.AddToggle("Show ally creeps", false, "Denies: creeps last hit by their own side")
 		this.ShowAllyCreeps.IconPath = LastHitIcons.AllyCreeps
 		this.ShowAllyHeroes = tree.AddToggle("Show ally heroes", false, "Creeps last hit by your allies, not only by you")
 		this.ShowAllyHeroes.IconPath = LastHitIcons.AllyHeroes
+		this.creepLogicSeeded = tree.AddToggle("Creep logic seeded", false)
+		this.creepLogicSeeded.IsHidden = true
 		this.Portrait = tree.AddDropdown(
 			"Portrait",
 			PORTRAIT_NAMES,
@@ -131,6 +138,23 @@ export class TrackerMenu extends SectionMenu {
 		this.Opacity = tree.AddSlider("Opacity", 85, 40, 100)
 		this.Opacity.Suffix = "%"
 		this.Opacity.IconPath = LastHitIcons.Opacity
+	}
+
+	/**
+	 * Gives the creep rows their default rule once: past 15:00 they switch off, so the late game
+	 * shows only heroes, towers, Roshan and the like. Rules live in the config, so this waits for
+	 * the config to land and never adds them twice; the user edits or removes them from the row.
+	 */
+	public SeedCreepLogic(): void {
+		if (this.creepLogicSeeded.value || !MenuSDK.ConfigApplied()) {
+			return
+		}
+		for (const kind of [this.LaneCreeps, this.NeutralCreeps]) {
+			if (kind.State.Logic.length === 0) {
+				kind.State.AddLogic("after", CREEPS_UNTIL).Value = false
+			}
+		}
+		this.creepLogicSeeded.value = true
 	}
 
 	/** The rows of the kind a kill falls under. */
