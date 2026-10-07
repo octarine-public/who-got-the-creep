@@ -14,7 +14,7 @@ const RING_WIDTH = 2
  * The portrait of whoever took the last hit, over the spot the unit died at: a round portrait
  * on the shadow a buff icon wears, or the bare hero image, whose rim that shadow would outline,
  * moving as the chosen animation says and fading as its time runs out. A kind that asks for it
- * wears the taker's player colour: as a ring on the rim running down with the time left, or as
+ * wears the taker's colour, their player colour or green / red by side: as a ring on the rim running down with the time left, or as
  * a disc filled behind the portrait with that shadow glowing around it.
  */
 export class TrackerGUI {
@@ -59,7 +59,7 @@ export class TrackerGUI {
 		const portrait = menu.Portrait.SelectedID
 		const playerColor = kind.PlayerColor.SelectedID
 		const backdrop = playerColor === EPlayerColor.Backdrop
-		const color = unit.PaintColor(menu.Colors.SelectedID)
+		const color = unit.PaintColor(kind.Colors.SelectedID)
 		const shadowed = backdrop || portrait !== EPortrait.HeroImage
 		if (backdrop) {
 			// the timer only glows around the rim: the backdrop itself is a disc under the portrait
