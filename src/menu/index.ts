@@ -1,3 +1,4 @@
+import { AddLaneAndFarmPage } from "../lane-and-farm"
 import { DetectorMenu } from "./detector"
 import { LastHitIcons } from "./icons"
 import { TrackerMenu } from "./tracker"
@@ -7,11 +8,10 @@ export class MenuManager {
 	public readonly Tracker: TrackerMenu
 	public readonly Detector: DetectorMenu
 
-	private readonly entry = Menu.AddEntry("Visual")
 	private readonly node: Menu.Node
 
 	constructor() {
-		this.node = this.entry.AddNode(
+		this.node = AddLaneAndFarmPage(
 			"Last hit ESP",
 			LastHitIcons.Page,
 			"Who took the last hit, and who fed on your jungle unseen"
