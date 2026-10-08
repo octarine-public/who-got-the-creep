@@ -39,7 +39,12 @@ export class LastHitTracker {
 		if (killed instanceof Hero) {
 			return killed.IsRealHero ? EKillKind.Hero : undefined
 		}
-		if (killed.IsBuilding || killed.IsRoshan || killed instanceof npc_dota_unit_undying_tombstone) {
+		if (
+			killed.IsBuilding ||
+			killed.IsRoshan ||
+			killed instanceof npc_dota_unit_undying_tombstone ||
+			killed.Name === "npc_dota_pugna_nether_ward"
+		) {
 			return EKillKind.Building
 		}
 		if (!(killed instanceof Creep)) {
@@ -51,7 +56,7 @@ export class LastHitTracker {
 		return killed.IsLaneCreep ? EKillKind.LaneCreep : undefined
 	}
 
-	/** A creep is shown by who took it; a hero, a building, Roshan or a tombstone is shown whoever did. */
+	/** A creep is shown by who took it; a hero, a building, Roshan, a tombstone or a Nether Ward is shown whoever did. */
 	private shouldShow(kind: EKillKind, killed: Unit, attacker: Hero): boolean {
 		if (kind === EKillKind.Hero || kind === EKillKind.Building) {
 			return true

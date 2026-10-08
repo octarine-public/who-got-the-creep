@@ -87,7 +87,7 @@ export class TrackerMenu extends SectionMenu {
 			tree,
 			"Towers & Roshan",
 			LastHitIcons.Buildings,
-			"Towers, other buildings, Roshan and Undying's tombstone",
+			"Towers, other buildings, Roshan, Undying's tombstone and Pugna's Nether Ward",
 			2.5
 		)
 		this.kinds = [this.LaneCreeps, this.NeutralCreeps, this.Heroes, this.Buildings]
