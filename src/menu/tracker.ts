@@ -116,6 +116,11 @@ export class TrackerMenu extends SectionMenu {
 		this.Opacity.IconPath = LastHitIcons.Opacity
 	}
 
+	/** How the portraits come and go: the Animation row's choice, or none with the menu's "Overlay animations" off. */
+	public get PlayedAnimation(): EAnimation {
+		return MenuSDK.MotionEnabled(MenuSDK.EThemeScope.World) ? this.Animation.SelectedID : EAnimation.None
+	}
+
 	/**
 	 * Gives the creep rows their default rule once: past 15:00 they switch off, so the late game
 	 * shows only heroes, towers, Roshan and the like. Rules live in the config, so this waits for

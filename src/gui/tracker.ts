@@ -43,7 +43,7 @@ export class TrackerGUI {
 		const showTime = kind.TimeToShow.value
 		const elapsed = unit.Elapsed(gameTime)
 		const pose = this.pose
-		PosePortrait(menu.Animation.SelectedID, elapsed, showTime, pose)
+		PosePortrait(menu.PlayedAnimation, elapsed, showTime, pose)
 		const size = Math.round(GUIInfo.ScaleHeight(kind.Size.value) * pose.scale)
 		const opacity = (menu.Opacity.value / 100) * pose.opacity
 		if (size <= 0 || opacity <= 0) {
