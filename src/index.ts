@@ -39,7 +39,7 @@ new (class CLastHitESP {
 	protected PostDataUpdate(): void {
 		const localHero = LocalPlayer?.Hero
 		if (this.menu.State.value && localHero !== undefined) {
-			this.detector.PostDataUpdate(localHero)
+			this.detector.PostDataUpdate(localHero, GameState.RawGameTime)
 		}
 	}
 

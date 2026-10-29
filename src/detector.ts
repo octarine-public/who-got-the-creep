@@ -6,6 +6,27 @@ import { WarningModel } from "./model"
 const XP_RANGE = 1500
 /** How long a warning stands, in seconds. */
 const WARNING_LIFETIME = 2
+/**
+ * How long a kill waits for the experience it gave, in seconds. The kill and the experience come
+ * in either order within a tick or two, and kills inside this window are answered as one batch.
+ */
+const XP_SETTLE_TIME = 0.25
+
+/** An ally's experience now, what it was before its last change, and when that change came. */
+interface IXpRecord {
+	xp: number
+	before: number
+	changedAt: number
+}
+
+/** A neutral that died and waits for the experience it gave to land. */
+interface IPendingKill {
+	readonly Position: Vector3
+	readonly Visible: boolean
+	readonly Bounty: number
+	readonly GameTime: number
+	readonly VisibleEnemies: number
+}
 
 /**
  * Enemies fed by a neutral nobody saw die. A neutral's bounty is split evenly among every hero
@@ -14,7 +35,11 @@ const WARNING_LIFETIME = 2
  */
 export class XpDetector {
 	private readonly warnings: WarningModel[] = []
-	private readonly alliesXP = new Map<number, number>()
+	private readonly alliesXP = new Map<number, IXpRecord>()
+	/** The kills of the batch waiting to settle, the first one leading. */
+	private readonly pending: IPendingKill[] = []
+	/** The allies in range of the batch, with their experience before its first kill. */
+	private readonly pendingAllies = new Map<Hero, number>()
 	private readonly particles = new ParticlesSDK()
 	private readonly gui: DetectorGUI
 	private nextKey = 0
@@ -30,13 +55,17 @@ export class XpDetector {
 		}
 	}
 
-	public PostDataUpdate(localHero: Hero): void {
+	public PostDataUpdate(localHero: Hero, gameTime: number): void {
 		const heroes = EntityManager.GetEntitiesByClass(Hero)
 		for (let index = heroes.length - 1; index > -1; index--) {
 			const hero = heroes[index]
 			if (hero.Team === localHero.Team) {
-				this.alliesXP.set(hero.Index, hero.CurrentXP)
+				this.recordXP(hero, gameTime)
 			}
+		}
+		const last = this.pending[this.pending.length - 1]
+		if (last !== undefined && gameTime - last.GameTime >= XP_SETTLE_TIME) {
+			this.settle(localHero, gameTime)
 		}
 	}
 
@@ -44,44 +73,86 @@ export class XpDetector {
 		if (!this.menu.State.value || !killed.IsNeutral) {
 			return
 		}
+		const bounty = killed.XPBounty + killed.XPBountyExtra
+		if (bounty <= 0) {
+			return
+		}
 		const heroes = EntityManager.GetEntitiesByClass(Hero)
 		const alliesNear = heroes.filter(hero => hero.Team === localHero.Team && hero.Distance(killed) <= XP_RANGE)
 		if (alliesNear.length === 0) {
 			return
 		}
-		const xpPerHero = alliesNear.map(hero => this.xpGained(hero)).find(diff => diff !== 0) ?? 0
-		if (xpPerHero === 0) {
-			return
+		for (const hero of alliesNear) {
+			if (!this.pendingAllies.has(hero)) {
+				this.pendingAllies.set(hero, this.xpBefore(hero, gameTime))
+			}
 		}
-		const heroesGainedXp = Math.floor((killed.XPBounty + killed.XPBountyExtra) / xpPerHero)
-		const enemiesGainedXp = heroesGainedXp - alliesNear.length
-		if (enemiesGainedXp <= 0) {
-			return
-		}
-		const visibleEnemies = heroes.filter(
-			hero => hero.IsEnemy() && hero.IsVisible && hero.Distance(killed) <= XP_RANGE
-		).length
-		if (visibleEnemies === enemiesGainedXp) {
-			return
-		}
-		const key = this.nextKey++
-		this.particles.DrawCircle(key, killed, XP_RANGE, {
-			Color: this.menu.EnemyWarningColor.SelectedColor,
-			Attachment: ParticleAttachment.PATTACH_ABSORIGIN_FOLLOW
+		this.pending.push({
+			Position: killed.Position.Clone(),
+			Visible: killed.IsVisible,
+			Bounty: bounty,
+			GameTime: gameTime,
+			VisibleEnemies: heroes.filter(hero => hero.IsEnemy() && hero.IsVisible && hero.Distance(killed) <= XP_RANGE)
+				.length
 		})
-		this.warnings.push(
-			new WarningModel(key, enemiesGainedXp, gameTime, killed.IsVisible ? undefined : killed.Position.Clone())
-		)
 	}
 
 	public GameEnded(): void {
 		this.warnings.clear()
 		this.alliesXP.clear()
+		this.pending.clear()
+		this.pendingAllies.clear()
 		this.particles.DestroyAll()
 	}
 
-	private xpGained(hero: Hero): number {
-		return hero.CurrentXP - (this.alliesXP.get(hero.Index) ?? hero.CurrentXP)
+	/** Answers the batch: the share an ally took says how many heroes split its bounty. */
+	private settle(localHero: Hero, gameTime: number): void {
+		const kill = this.pending[0]
+		const bounty = this.pending.reduce((sum, pending) => sum + pending.Bounty, 0)
+		const visibleEnemies = this.pending.reduce((most, pending) => Math.max(most, pending.VisibleEnemies), 0)
+		let xpPerHero = 0
+		for (const [hero, before] of this.pendingAllies) {
+			xpPerHero = hero.CurrentXP - before
+			if (xpPerHero > 0) {
+				break
+			}
+		}
+		const alliesNear = this.pendingAllies.size
+		this.pending.clear()
+		this.pendingAllies.clear()
+		if (xpPerHero <= 0) {
+			return
+		}
+		const enemiesGainedXp = Math.floor(bounty / xpPerHero) - alliesNear
+		if (enemiesGainedXp <= 0 || visibleEnemies >= enemiesGainedXp) {
+			return
+		}
+		const key = this.nextKey++
+		this.particles.DrawCircle(key, localHero, XP_RANGE, {
+			Color: this.menu.EnemyWarningColor.SelectedColor,
+			Position: kill.Position
+		})
+		this.warnings.push(new WarningModel(key, enemiesGainedXp, gameTime, kill.Visible ? undefined : kill.Position))
+	}
+
+	private recordXP(hero: Hero, gameTime: number): void {
+		const record = this.alliesXP.get(hero.Index)
+		if (record === undefined) {
+			this.alliesXP.set(hero.Index, { xp: hero.CurrentXP, before: hero.CurrentXP, changedAt: gameTime })
+		} else if (record.xp !== hero.CurrentXP) {
+			record.before = record.xp
+			record.xp = hero.CurrentXP
+			record.changedAt = gameTime
+		}
+	}
+
+	/** The ally's experience from before the tick of a kill, whether that tick's update came first or not. */
+	private xpBefore(hero: Hero, gameTime: number): number {
+		const record = this.alliesXP.get(hero.Index)
+		if (record === undefined) {
+			return hero.CurrentXP
+		}
+		return record.changedAt >= gameTime ? record.before : record.xp
 	}
 
 	private expire(gameTime: number): void {
