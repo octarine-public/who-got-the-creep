@@ -49,11 +49,14 @@ new (class CLastHitESP {
 		}
 		const killed = EntityManager.EntityByIndex(event.entindex_killed)
 		const attacker = EntityManager.EntityByIndex(event.entindex_attacker)
-		if (!(killed instanceof Unit) || !(attacker instanceof Hero)) {
+		if (!(killed instanceof Unit)) {
 			return
 		}
 		const gameTime = GameState.RawGameTime
-		this.tracker.EntityKilled(killed, attacker, gameTime)
+		if (attacker instanceof Hero) {
+			this.tracker.EntityKilled(killed, attacker, gameTime)
+		}
+		// a summon's or an illusion's kill feeds the heroes around just the same
 		const localHero = LocalPlayer?.Hero
 		if (localHero !== undefined) {
 			this.detector.EntityKilled(killed, localHero, gameTime)
