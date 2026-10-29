@@ -43,5 +43,13 @@
 	"Enemy warning": "敌人警告",
 	"Radius with enemies inside": "范围内有敌人时的圆圈颜色",
 	"Last hitted neutral": "被补刀的野怪",
-	"Where the neutral was last hit": "野怪被补刀位置的标记颜色"
+	"Where the neutral was last hit": "野怪被补刀位置的标记颜色",
+	"Top lane camps": "上路附近野点",
+	"Camps nearest to the top lane": "离上路最近的野点",
+	"Middle lane camps": "中路附近野点",
+	"Camps nearest to the middle lane": "离中路最近的野点",
+	"Bottom lane camps": "下路附近野点",
+	"Camps nearest to the bottom lane": "离下路最近的野点",
+	"Min enemies": "最少敌人数",
+	"Warn only when at least this many enemies\nshared the experience of the camp": "只有至少这么多敌人\n分到该野点的经验时才提醒"
 }

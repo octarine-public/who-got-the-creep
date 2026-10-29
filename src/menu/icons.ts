@@ -21,5 +21,9 @@ export const LastHitIcons = {
 	Time: Menu.Icons.ClockSeconds,
 	Opacity: Menu.Icons.Checkerboard,
 	PlayerColor: Menu.Icons.PlateRing,
-	Color: Menu.Icons.Palette
+	Color: Menu.Icons.Palette,
+	TopLane: ImageData.Icons.offlane,
+	MiddleLane: ImageData.Icons.midlane,
+	BottomLane: ImageData.Icons.safelane,
+	MinEnemies: Menu.Icons.ListFilter
 } as const

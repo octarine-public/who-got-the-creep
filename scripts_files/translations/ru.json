@@ -43,5 +43,13 @@
 	"Enemy warning": "Враги рядом",
 	"Radius with enemies inside": "Цвет радиуса с противниками внутри",
 	"Last hitted neutral": "Добитый нейтрал",
-	"Where the neutral was last hit": "Цвет метки в месте, где был добит нейтрал"
+	"Where the neutral was last hit": "Цвет метки в месте, где был добит нейтрал",
+	"Top lane camps": "Кемпы у верхней линии",
+	"Camps nearest to the top lane": "Лагеря, ближайшие к верхней линии",
+	"Middle lane camps": "Кемпы у средней линии",
+	"Camps nearest to the middle lane": "Лагеря, ближайшие к средней линии",
+	"Bottom lane camps": "Кемпы у нижней линии",
+	"Camps nearest to the bottom lane": "Лагеря, ближайшие к нижней линии",
+	"Min enemies": "Минимум врагов",
+	"Warn only when at least this many enemies\nshared the experience of the camp": "Предупреждать, только если опыт с лагеря\nразделили хотя бы столько врагов"
 }

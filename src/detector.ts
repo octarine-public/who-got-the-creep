@@ -1,4 +1,5 @@
 import { DetectorGUI } from "./gui/detector"
+import { LaneRoutes } from "./lanes"
 import { DetectorMenu } from "./menu/detector"
 import { WarningModel } from "./model"
 
@@ -25,13 +26,15 @@ interface IPendingKill {
 	readonly Visible: boolean
 	readonly Bounty: number
 	readonly GameTime: number
+	readonly Lane: MapArea
 	readonly VisibleEnemies: number
 }
 
 /**
  * Enemies fed by a neutral nobody saw die. A neutral's bounty is split evenly among every hero
  * within range, so the share one ally took says how many heroes shared it; every one past the
- * allies in range and the enemies in sight is someone hiding in the trees.
+ * allies in range and the enemies in sight is someone hiding in the trees. Camps are sorted by
+ * the lane nearest to them, each lane with its own switch and the enemies it takes to warn.
  */
 export class XpDetector {
 	private readonly warnings: WarningModel[] = []
@@ -41,6 +44,7 @@ export class XpDetector {
 	/** The allies in range of the batch, with their experience before its first kill. */
 	private readonly pendingAllies = new Map<Hero, number>()
 	private readonly particles = new ParticlesSDK()
+	private readonly lanes = new LaneRoutes()
 	private readonly gui: DetectorGUI
 	private nextKey = 0
 
@@ -92,6 +96,7 @@ export class XpDetector {
 			Visible: killed.IsVisible,
 			Bounty: bounty,
 			GameTime: gameTime,
+			Lane: this.lanes.Nearest(killed.Position),
 			VisibleEnemies: heroes.filter(hero => hero.IsEnemy() && hero.IsVisible && hero.Distance(killed) <= XP_RANGE)
 				.length
 		})
@@ -102,6 +107,7 @@ export class XpDetector {
 		this.alliesXP.clear()
 		this.pending.clear()
 		this.pendingAllies.clear()
+		this.lanes.Clear()
 		this.particles.DestroyAll()
 	}
 
@@ -125,6 +131,11 @@ export class XpDetector {
 		}
 		const enemiesGainedXp = Math.floor(bounty / xpPerHero) - alliesNear
 		if (enemiesGainedXp <= 0 || visibleEnemies >= enemiesGainedXp) {
+			return
+		}
+		// a spot no lane route was found near keeps warning: the map gave nothing to sort it by
+		const lane = this.menu.Lane(kill.Lane)
+		if (lane !== undefined && (!lane.State.value || enemiesGainedXp < lane.MinEnemies.value)) {
 			return
 		}
 		const key = this.nextKey++
